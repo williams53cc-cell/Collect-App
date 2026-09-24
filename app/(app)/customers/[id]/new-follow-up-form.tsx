@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef } from "react";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { Alert } from "@/components/ui/alert";
-import { FOLLOW_UP_STATUSES } from "@/lib/validation/follow-up";
+import { FOLLOW_UP_STATUSES, formatStatusLabel } from "@/lib/validation/follow-up";
 import { initialFormState } from "@/lib/form-state";
 import { createFollowUp } from "../../follow-ups/actions";
 
@@ -63,7 +63,7 @@ export function NewFollowUpForm({ customerId }: { customerId: string }) {
         >
           {FOLLOW_UP_STATUSES.map((status) => (
             <option key={status} value={status}>
-              {status[0].toUpperCase() + status.slice(1)}
+              {formatStatusLabel(status)}
             </option>
           ))}
         </Select>
