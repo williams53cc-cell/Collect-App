@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Dialog, type DialogHandle } from "@/components/ui/dialog";
 import { Button, buttonClassName } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/field";
-import { formatCurrency, daysOverdue } from "@/lib/format";
+import { formatCurrency, formatDate, daysOverdue } from "@/lib/format";
 import {
   MESSAGE_TONES,
   MESSAGE_TONE_META,
@@ -34,6 +34,10 @@ interface DraftMessageDialogProps {
   amountOwed: number;
   contact: string | null;
   dueDate: string;
+  /** The date the customer verbally promised to pay, if one has been
+   * logged. Once set, it's a stronger signal than our own due_date, so it
+   * drives both the day-count/tone and the message wording instead. */
+  promisedDate: string | null;
 }
 
 export function DraftMessageDialog({
@@ -42,6 +46,7 @@ export function DraftMessageDialog({
   amountOwed,
   contact,
   dueDate,
+  promisedDate,
 }: DraftMessageDialogProps) {
   const dialogRef = useRef<DialogHandle>(null);
   const [tone, setTone] = useState<MessageTone>("friendly");
@@ -54,13 +59,19 @@ export function DraftMessageDialog({
   const [isIOS, setIsIOS] = useState(false);
   useEffect(() => setIsIOS(isIOSDevice()), []);
 
-  const overdueDays = daysOverdue(dueDate);
+  // Once a customer has promised a date, that promise is the stronger
+  // signal — both the tone and the day-count switch to counting from it
+  // instead of our own due_date.
+  const effectiveDate = promisedDate ?? dueDate;
+  const overdueDays = daysOverdue(effectiveDate);
+  const promisedDateLabel = promisedDate ? formatDate(promisedDate) : null;
   const messageContext = {
     name: customerName,
     job: customerJob?.trim() || null,
     amount: formatCurrency(amountOwed),
     daysOverdue: overdueDays,
     hasDueDate: true,
+    promisedDateLabel,
   };
 
   function applyTone(nextTone: MessageTone) {
@@ -104,7 +115,11 @@ export function DraftMessageDialog({
       <Dialog
         ref={dialogRef}
         title="Draft a message"
-        description={`For ${customerName} — ${describeDueStatus(overdueDays)}`}
+        description={
+          promisedDateLabel
+            ? `For ${customerName} — promised ${promisedDateLabel}`
+            : `For ${customerName} — ${describeDueStatus(overdueDays)}`
+        }
       >
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-2">
@@ -146,7 +161,7 @@ export function DraftMessageDialog({
           )}
 
           <div className="flex flex-col gap-2 sm:flex-row">
-            <a
+            
               href={buildSmsLink(phone, message, isIOS)}
               className={buttonClassName({
                 variant: "secondary",
@@ -155,7 +170,7 @@ export function DraftMessageDialog({
             >
               Text
             </a>
-            <a
+            
               href={buildMailtoLink(email, subject, message)}
               className={buttonClassName({
                 variant: "secondary",
