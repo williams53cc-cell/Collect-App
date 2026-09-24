@@ -164,3 +164,111 @@ describe("renderMessage — promise-aware wording", () => {
     expect(renderMessage("firm", noPromise)).toContain("8 days past due");
   });
 });
+
+describe("renderMessage — due-soon wording (not yet due)", () => {
+  const base = {
+    name: "Jordan Smith",
+    job: "Kitchen remodel",
+    amount: "$1,200.00",
+    hasDueDate: true,
+    promisedDateLabel: null,
+  };
+
+  it("says 'due in N days' instead of 'due today' for a future due date", () => {
+    const dueSoon = { ...base, daysOverdue: -3 };
+    expect(renderMessage("friendly", dueSoon)).toContain("due in 3 days");
+    expect(renderMessage("friendly", dueSoon)).not.toContain("due today");
+  });
+
+  it("uses singular 'day' when due in exactly 1 day", () => {
+    const dueTomorrow = { ...base, daysOverdue: -1 };
+    expect(renderMessage("friendly", dueTomorrow)).toContain("due in 1 day");
+    expect(renderMessage("friendly", dueTomorrow)).not.toContain(
+      "due in 1 days"
+    );
+  });
+
+  it("still says 'due today' for a due date of exactly today", () => {
+    const dueToday = { ...base, daysOverdue: 0 };
+    expect(renderMessage("friendly", dueToday)).toContain("due today");
+  });
+
+  it("names the real date and offers to resend the invoice when dueDateLabel is set", () => {
+    const dueSoonWithLabel = {
+      ...base,
+      daysOverdue: -3,
+      dueDateLabel: "Oct 9, 2026",
+    };
+    const message = renderMessage("friendly", dueSoonWithLabel);
+    expect(message).toContain("is due on Oct 9, 2026");
+    expect(message).toContain("invoice resent");
+  });
+
+  it("mentions paying from the invoice details on the due-today message", () => {
+    const dueToday = { ...base, daysOverdue: 0 };
+    expect(renderMessage("friendly", dueToday)).toContain(
+      "using the details on your invoice"
+    );
+  });
+});
+
+describe("renderMessage — disregard-if-paid courtesy line", () => {
+  const base = {
+    name: "Jordan Smith",
+    job: "Kitchen remodel",
+    amount: "$1,200.00",
+    hasDueDate: true,
+    promisedDateLabel: null,
+  };
+
+  it("appears once the balance is genuinely overdue, on every tone", () => {
+    const overdue = { ...base, daysOverdue: 5 };
+    for (const tone of MESSAGE_TONES) {
+      expect(renderMessage(tone, overdue)).toContain(
+        "If you've already sent payment, please disregard this message."
+      );
+    }
+  });
+
+  it("does not appear for a due-today or not-yet-due reminder", () => {
+    const dueToday = { ...base, daysOverdue: 0 };
+    const dueSoon = { ...base, daysOverdue: -3 };
+    expect(renderMessage("friendly", dueToday)).not.toContain("disregard");
+    expect(renderMessage("friendly", dueSoon)).not.toContain("disregard");
+  });
+});
+
+describe("renderMessage — broken-promise wording", () => {
+  const base = {
+    name: "Jordan Smith",
+    job: "Kitchen remodel",
+    amount: "$1,200.00",
+    daysOverdue: 1,
+    hasDueDate: true,
+    promisedDateLabel: "Sep 26, 2026",
+  };
+
+  it("asks for an updated date right away, on every tone, once the promise is broken", () => {
+    const broken = { ...base, promiseBroken: true };
+    for (const tone of MESSAGE_TONES) {
+      expect(renderMessage(tone, broken)).toMatch(
+        /confirm an updated date/
+      );
+    }
+  });
+
+  it("does not ask for an updated date while the promise hasn't been broken yet", () => {
+    const notBroken = { ...base, promiseBroken: false };
+    for (const tone of MESSAGE_TONES) {
+      expect(renderMessage(tone, notBroken)).not.toMatch(
+        /confirm an updated date/
+      );
+    }
+  });
+
+  it("treats a missing promiseBroken flag the same as false, for backward compatibility", () => {
+    for (const tone of MESSAGE_TONES) {
+      expect(renderMessage(tone, base)).not.toMatch(/confirm an updated date/);
+    }
+  });
+});
