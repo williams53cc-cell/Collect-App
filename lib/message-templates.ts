@@ -1,7 +1,7 @@
 export const MESSAGE_TONES = ["friendly", "firm", "formal"] as const;
 export type MessageTone = (typeof MESSAGE_TONES)[number];
 
-export const MESSAGE_TONE_META: Record<
+export const MESSAGE_TONE_META: Record
   MessageTone,
   { label: string; description: string }
 > = {
@@ -29,6 +29,11 @@ export interface MessageContext {
   /** false when the follow-up has no due date at all — distinct from
    * daysOverdue === 0, which means a due date exists and is today. */
   hasDueDate: boolean;
+  /** Pre-formatted (e.g. "Sep 26, 2026") and set only once the customer has
+   * verbally promised a pay date. When present, that's a stronger signal
+   * than our own due_date, so every tone quotes it back to the customer
+   * instead of using the generic "past due" phrasing. */
+  promisedDateLabel: string | null;
 }
 
 /** ", now 8 days past due" / ", now 1 day past due" / ", due today" / ""
@@ -42,6 +47,16 @@ function dueDateClause(ctx: MessageContext): string {
 }
 
 function buildFriendly(ctx: MessageContext): string {
+  if (ctx.promisedDateLabel) {
+    const opening = ctx.job
+      ? `Hi ${ctx.name}, hope the ${ctx.job} is looking great! Just checking in`
+      : `Hi ${ctx.name}, just checking in`;
+    return (
+      `${opening} — you'd mentioned having the ${ctx.amount} balance settled by ${ctx.promisedDateLabel}. ` +
+      "Could you let me know where things stand? " +
+      "Happy to help if there's anything holding it up."
+    );
+  }
   const opening = ctx.job
     ? `Hi ${ctx.name}, hope the ${ctx.job} is looking great! Just a friendly reminder`
     : `Hi ${ctx.name}, just a friendly reminder`;
@@ -54,6 +69,13 @@ function buildFriendly(ctx: MessageContext): string {
 
 function buildFirm(ctx: MessageContext): string {
   const jobClause = ctx.job ? ` for the ${ctx.job} project` : "";
+  if (ctx.promisedDateLabel) {
+    return (
+      `Hi ${ctx.name}, following up on the balance of ${ctx.amount}${jobClause} — you'd mentioned having this settled by ${ctx.promisedDateLabel}, which has now passed. ` +
+      "Could you let me know when I can expect this, or reach out if something's changed on your end? " +
+      "Happy to help if anything's holding it up."
+    );
+  }
   return (
     `Hi ${ctx.name}, this is a follow-up regarding the balance of ${ctx.amount}${jobClause}${dueDateClause(ctx)}. ` +
     "Could you let me know when we can expect this to be settled, ideally by the end of the week? " +
@@ -63,6 +85,13 @@ function buildFirm(ctx: MessageContext): string {
 
 function buildFormal(ctx: MessageContext): string {
   const jobClause = ctx.job ? ` for the ${ctx.job}` : "";
+  if (ctx.promisedDateLabel) {
+    return (
+      `Hi ${ctx.name}, I'm reaching out again regarding the outstanding balance of ${ctx.amount}${jobClause}. ` +
+      `You'd mentioned having this settled by ${ctx.promisedDateLabel}, which has now passed. ` +
+      "I'd like to get this resolved as soon as possible — could you let me know when I can expect payment, or reach out if there's something going on I should know about?"
+    );
+  }
   return (
     `Hi ${ctx.name}, I'm reaching out again regarding the outstanding balance of ${ctx.amount}${jobClause}${dueDateClause(ctx)}. ` +
     "I'd like to get this resolved as soon as possible — could you let me know when I can expect payment, ideally by the end of the week, or reach out if there's something going on I should know about?"
