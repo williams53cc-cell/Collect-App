@@ -109,4 +109,20 @@ describe("isOverdue / isDueToday — tier boundary scenarios", () => {
   });
 });
 
-describe
+describe("signedDaysFromToday — unlike daysOverdue(), not clamped", () => {
+  it("due today -> 0", () => {
+    expect(signedDaysFromToday(daysAgo(0))).toBe(0);
+  });
+
+  it("due yesterday -> 1 (positive, past)", () => {
+    expect(signedDaysFromToday(daysAgo(1))).toBe(1);
+  });
+
+  it("due in 3 days -> -3 (negative, upcoming) instead of clamping to 0", () => {
+    expect(signedDaysFromToday(daysAgo(-3))).toBe(-3);
+  });
+
+  it("defensive: a null date is treated as today (0), not a crash", () => {
+    expect(signedDaysFromToday(null)).toBe(0);
+  });
+});
