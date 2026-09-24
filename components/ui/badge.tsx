@@ -1,6 +1,6 @@
 export type BadgeTone =
   | "blue"
-  | "red"
+  | "red"  
   | "green"
   | "gray"
   | "amber";
