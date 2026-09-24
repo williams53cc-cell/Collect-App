@@ -5,9 +5,10 @@ import { Select } from "@/components/ui/field";
 import { Badge, FollowUpStatusBadge } from "@/components/ui/badge";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DraftMessageDialog } from "@/components/message-draft-dialog";
+import { CallScriptDialog } from "@/components/call-script-dialog";
 import { PromisedDateControl } from "@/components/promised-date-control";
 import { formatDate, isOverdue } from "@/lib/format";
-import { FOLLOW_UP_STATUSES } from "@/lib/validation/follow-up";
+import { FOLLOW_UP_STATUSES, formatStatusLabel } from "@/lib/validation/follow-up";
 import type { FollowUpStatus } from "@/types/database";
 import { deleteFollowUp, updateFollowUpStatus } from "../../follow-ups/actions";
 
@@ -78,7 +79,7 @@ export function FollowUpRow({
           >
             {FOLLOW_UP_STATUSES.map((status) => (
               <option key={status} value={status}>
-                {status[0].toUpperCase() + status.slice(1)}
+                {formatStatusLabel(status)}
               </option>
             ))}
           </Select>
@@ -99,6 +100,15 @@ export function FollowUpRow({
               customerJob={customer.job}
               amountOwed={customer.amount_owed}
               contact={customer.contact}
+              dueDate={followUp.due_date}
+              promisedDate={followUp.promised_date}
+            />
+          )}
+          {followUp.status === "needs_call" && (
+            <CallScriptDialog
+              customerName={customer.name}
+              customerJob={customer.job}
+              amountOwed={customer.amount_owed}
               dueDate={followUp.due_date}
               promisedDate={followUp.promised_date}
             />
