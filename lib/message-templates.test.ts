@@ -73,6 +73,7 @@ describe("renderMessage — missing-field handling regression", () => {
     amount: "$1,200.00",
     daysOverdue: 8,
     hasDueDate: true,
+    promisedDateLabel: null,
   };
 
   it("drops the job clause entirely when job is missing, on every tone", () => {
@@ -102,6 +103,7 @@ describe("renderMessage — wording", () => {
     amount: "$1,200.00",
     daysOverdue: 8,
     hasDueDate: true,
+    promisedDateLabel: null,
   };
 
   it("formal no longer claims prior reminders were sent", () => {
@@ -131,3 +133,28 @@ describe("renderMessage — wording", () => {
     }
   });
 });
+
+describe("renderMessage — promise-aware wording", () => {
+  const base = {
+    name: "Jordan Smith",
+    job: "Kitchen remodel",
+    amount: "$1,200.00",
+    daysOverdue: 8,
+    hasDueDate: true,
+  };
+
+  it("quotes the customer's own promised date back to them, on every tone", () => {
+    const withPromise = { ...base, promisedDateLabel: "Sep 26, 2026" };
+    for (const tone of MESSAGE_TONES) {
+      expect(renderMessage(tone, withPromise)).toContain("Sep 26, 2026");
+    }
+  });
+
+  it("drops the generic 'past due' phrasing once a promise exists", () => {
+    const withPromise = { ...base, promisedDateLabel: "Sep 26, 2026" };
+    expect(renderMessage("firm", withPromise)).not.toMatch(/past due/);
+    expect(renderMessage("formal", withPromise)).not.toMatch(/past due/);
+  });
+
+  it("leaves the no-promise wording exactly as before", () => {
+    const noPromise = { ...base, promisedDateLabel: null };
