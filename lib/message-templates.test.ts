@@ -158,3 +158,9 @@ describe("renderMessage — promise-aware wording", () => {
 
   it("leaves the no-promise wording exactly as before", () => {
     const noPromise = { ...base, promisedDateLabel: null };
+    expect(renderMessage("friendly", noPromise)).toContain(
+      "friendly reminder"
+    );
+    expect(renderMessage("firm", noPromise)).toContain("8 days past due");
+  });
+});
