@@ -109,6 +109,7 @@ export default async function DashboardPage() {
                             amountOwed={followUp.customerAmountOwed}
                             contact={followUp.customerContact}
                             dueDate={followUp.due_date}
+                            promisedDate={followUp.promised_date}
                           />
                         </td>
                       </tr>
