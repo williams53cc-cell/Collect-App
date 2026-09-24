@@ -1,5 +1,5 @@
 export type CustomerStatus = "active" | "overdue" | "paid" | "closed";
-export type FollowUpStatus = "pending" | "done" | "skipped";
+export type FollowUpStatus = "pending" | "needs_call" | "done" | "skipped";
 
 export interface Database {
   public: {
