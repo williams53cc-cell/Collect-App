@@ -1,0 +1,11 @@
+-- Adds a fourth follow-up status: 'needs_call'. The contractor sets this by
+-- hand (via the same status dropdown used for pending/done/skipped) once a
+-- promised date has been broken and a follow-up message hasn't gotten a
+-- response — it's a signal to pick up the phone instead of sending another
+-- automated-feeling text. No automatic detection yet; that's a later phase.
+--
+-- Postgres requires ALTER TYPE ... ADD VALUE to run outside a transaction
+-- block, and the added value can't be used in the same transaction it was
+-- added in on older Postgres versions — so this migration only adds the
+-- enum value. Nothing else in this migration touches rows.
+alter type follow_up_status add value if not exists 'needs_call';
