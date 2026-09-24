@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";    
+import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { parseFollowUpForm } from "@/lib/validation/follow-up";
 import { initialFormState, type FormState } from "@/lib/form-state";
@@ -63,6 +63,23 @@ export async function updateFollowUpStatus(
   const { error } = await supabase
     .from("follow_ups")
     .update({ status })
+    .eq("id", followUpId);
+
+  if (error) return { error: error.message };
+
+  revalidateFollowUpPaths(customerId);
+  return {};
+}
+
+export async function setPromisedDate(
+  followUpId: string,
+  customerId: string,
+  promisedDate: string | null
+): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("follow_ups")
+    .update({ promised_date: promisedDate })
     .eq("id", followUpId);
 
   if (error) return { error: error.message };
