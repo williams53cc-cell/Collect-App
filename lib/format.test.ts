@@ -1,5 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { daysOverdue, isDueToday, isOverdue, todayISODate } from "./format";
+import {
+  daysOverdue,
+  isDueToday,
+  isOverdue,
+  signedDaysFromToday,
+  todayISODate,
+} from "./format";
 
 /** Fixed reference instant: 8:00 PM on a chosen local calendar day.
  *
@@ -102,3 +108,5 @@ describe("isOverdue / isDueToday — tier boundary scenarios", () => {
     expect(isDueToday(daysAgo(0), "skipped")).toBe(false);
   });
 });
+
+describe
