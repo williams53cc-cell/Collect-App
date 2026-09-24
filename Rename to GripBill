@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "COLLECT",
-  description: "Track who owes you and follow up on time.",
+  title: "GripBill",
+  description: "Know who owes you. Get paid without the chase.",
 };
 
 export default function RootLayout({
