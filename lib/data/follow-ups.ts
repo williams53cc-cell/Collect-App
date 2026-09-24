@@ -3,7 +3,7 @@ import { todayISODate } from "@/lib/format";
 import type { FollowUpStatus } from "@/types/database";
 
 export type FollowUpFilterKey =
-  | "all"
+  | "all"  
   | "due-today"
   | "overdue"
   | "pending"
