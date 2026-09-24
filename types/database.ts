@@ -2,7 +2,7 @@ export type CustomerStatus = "active" | "overdue" | "paid" | "closed";
 export type FollowUpStatus = "pending" | "done" | "skipped";
 
 export interface Database {
-  public: {
+  public: {  
     Tables: {
       customers: {
         Row: {
