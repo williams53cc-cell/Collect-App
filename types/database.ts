@@ -2,7 +2,7 @@ export type CustomerStatus = "active" | "overdue" | "paid" | "closed";
 export type FollowUpStatus = "pending" | "done" | "skipped";
 
 export interface Database {
-  public: {  
+  public: {
     Tables: {
       customers: {
         Row: {
@@ -46,12 +46,11 @@ export interface Database {
           user_id: string;
           customer_id: string;
           reason: string;
-          // Enforced NOT NULL at the DB level (migration 0002) — every row
-          // genuinely has a due date, so this isn't `| null`.
           due_date: string;
           status: FollowUpStatus;
           notes: string | null;
           created_at: string;
+          promised_date: string | null;
         };
         Insert: {
           id?: string;
@@ -62,6 +61,7 @@ export interface Database {
           status?: FollowUpStatus;
           notes?: string | null;
           created_at?: string;
+          promised_date?: string | null;
         };
         Update: {
           id?: string;
@@ -72,6 +72,7 @@ export interface Database {
           status?: FollowUpStatus;
           notes?: string | null;
           created_at?: string;
+          promised_date?: string | null;
         };
         Relationships: [
           {
