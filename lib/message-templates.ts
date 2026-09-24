@@ -1,10 +1,7 @@
 export const MESSAGE_TONES = ["friendly", "firm", "formal"] as const;
 export type MessageTone = (typeof MESSAGE_TONES)[number];
 
-export const MESSAGE_TONE_META: Record
-  MessageTone,
-  { label: string; description: string }
-> = {
+export const MESSAGE_TONE_META: Record<MessageTone, { label: string; description: string }> = {
   friendly: { label: "Friendly", description: "1–5 days overdue" },
   firm: { label: "Firm", description: "6–13 days overdue" },
   formal: { label: "Formal", description: "14+ days overdue" },
