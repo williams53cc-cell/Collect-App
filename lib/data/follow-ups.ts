@@ -3,18 +3,20 @@ import { todayISODate } from "@/lib/format";
 import type { FollowUpStatus } from "@/types/database";
 
 export type FollowUpFilterKey =
-  | "all"  
+  | "all"
   | "due-today"
   | "overdue"
   | "pending"
   | "done"
-  | "skipped";
+  | "skipped"
+  | "promised";
 
 export const FOLLOW_UP_FILTERS: { key: FollowUpFilterKey; label: string }[] =
   [
     { key: "all", label: "All" },
     { key: "overdue", label: "Overdue" },
     { key: "due-today", label: "Due today" },
+    { key: "promised", label: "Promised" },
     { key: "pending", label: "Pending" },
     { key: "done", label: "Done" },
     { key: "skipped", label: "Skipped" },
@@ -28,6 +30,7 @@ export interface FollowUpWithCustomer {
   status: FollowUpStatus;
   notes: string | null;
   created_at: string;
+  promised_date: string | null;
   customerName: string;
   customerJob: string | null;
   customerAmountOwed: number;
@@ -55,6 +58,8 @@ export async function getFollowUps(
     filter === "skipped"
   ) {
     query = query.eq("status", filter);
+  } else if (filter === "promised") {
+    query = query.not("promised_date", "is", null);
   }
 
   const { data: followUps, error } = await query;
