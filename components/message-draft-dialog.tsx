@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Dialog, type DialogHandle } from "@/components/ui/dialog";
 import { Button, buttonClassName } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/field";
-import { formatCurrency, formatDate, daysOverdue } from "@/lib/format";
+import { formatCurrency, formatDate, signedDaysFromToday, todayISODate } from "@/lib/format";
 import {
   MESSAGE_TONES,
   MESSAGE_TONE_META,
@@ -22,10 +22,15 @@ import {
 
 // Follow-ups always have a due date (enforced by the `due_date` NOT NULL
 // constraint and required form/schema validation), so this only ever
-// distinguishes "overdue" from "due today" — never a missing date.
-function describeDueStatus(overdueDays: number): string {
-  if (overdueDays <= 0) return "due today";
-  return `${overdueDays} day${overdueDays === 1 ? "" : "s"} overdue`;
+// distinguishes "due soon" from "due today" from "overdue" — never a
+// missing date. `signedDays` is NOT clamped: negative means still upcoming.
+function describeDueStatus(signedDays: number): string {
+  if (signedDays < 0) {
+    const daysUntil = -signedDays;
+    return `due in ${daysUntil} day${daysUntil === 1 ? "" : "s"}`;
+  }
+  if (signedDays === 0) return "due today";
+  return `${signedDays} day${signedDays === 1 ? "" : "s"} overdue`;
 }
 
 interface DraftMessageDialogProps {
@@ -61,17 +66,21 @@ export function DraftMessageDialog({
 
   // Once a customer has promised a date, that promise is the stronger
   // signal — both the tone and the day-count switch to counting from it
-  // instead of our own due_date.
+  // instead of our own due_date. Signed (not clamped), so "due in 3 days"
+  // reads correctly instead of every future date claiming "due today".
   const effectiveDate = promisedDate ?? dueDate;
-  const overdueDays = daysOverdue(effectiveDate);
+  const overdueDays = signedDaysFromToday(effectiveDate);
   const promisedDateLabel = promisedDate ? formatDate(promisedDate) : null;
+  const promiseBroken = promisedDate ? promisedDate < todayISODate() : false;
   const messageContext = {
     name: customerName,
     job: customerJob?.trim() || null,
     amount: formatCurrency(amountOwed),
     daysOverdue: overdueDays,
     hasDueDate: true,
+    dueDateLabel: formatDate(dueDate),
     promisedDateLabel,
+    promiseBroken,
   };
 
   function applyTone(nextTone: MessageTone) {
@@ -117,7 +126,9 @@ export function DraftMessageDialog({
         title="Draft a message"
         description={
           promisedDateLabel
-            ? `For ${customerName} — promised ${promisedDateLabel}`
+            ? promiseBroken
+              ? `For ${customerName} — broke promise (${promisedDateLabel})`
+              : `For ${customerName} — promised ${promisedDateLabel}`
             : `For ${customerName} — ${describeDueStatus(overdueDays)}`
         }
       >
