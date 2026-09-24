@@ -46,12 +46,22 @@ export function CustomerStatusBadge({ status }: { status: string }) {
 
 const FOLLOW_UP_STATUS_TONE: Record<string, BadgeTone> = {
   pending: "amber",
+  needs_call: "red",
   done: "green",
   skipped: "gray",
 };
 
+const FOLLOW_UP_STATUS_LABEL: Record<string, string> = {
+  pending: "pending",
+  needs_call: "needs a call",
+  done: "done",
+  skipped: "skipped",
+};
+
 export function FollowUpStatusBadge({ status }: { status: string }) {
   return (
-    <Badge tone={FOLLOW_UP_STATUS_TONE[status] ?? "gray"}>{status}</Badge>
+    <Badge tone={FOLLOW_UP_STATUS_TONE[status] ?? "gray"}>
+      {FOLLOW_UP_STATUS_LABEL[status] ?? status}
+    </Badge>
   );
 }
