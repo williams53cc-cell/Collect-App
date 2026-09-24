@@ -1,11 +1,12 @@
 "use client";
 
-import Link from "next/link";  
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { Select } from "@/components/ui/field";
 import { Badge, FollowUpStatusBadge } from "@/components/ui/badge";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DraftMessageDialog } from "@/components/message-draft-dialog";
+import { PromisedDateControl } from "@/components/promised-date-control";
 import { formatDate, isOverdue } from "@/lib/format";
 import { FOLLOW_UP_STATUSES } from "@/lib/validation/follow-up";
 import type { FollowUpStatus } from "@/types/database";
@@ -41,6 +42,11 @@ export function FollowUpListRow({
             <Badge tone="red">Overdue</Badge>
           </span>
         )}
+        <PromisedDateControl
+          followUpId={followUp.id}
+          customerId={followUp.customer_id}
+          promisedDate={followUp.promised_date}
+        />
       </td>
       <td className="px-4 py-3">
         <div className="flex items-center gap-2">
