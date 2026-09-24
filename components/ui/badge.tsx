@@ -1,9 +1,10 @@
 export type BadgeTone =
   | "blue"
-  | "red"  
+  | "red"
   | "green"
   | "gray"
-  | "amber";
+  | "amber"
+  | "purple";
 
 const TONE_CLASSES: Record<BadgeTone, string> = {
   blue: "bg-blue-50 text-blue-700",
@@ -11,6 +12,7 @@ const TONE_CLASSES: Record<BadgeTone, string> = {
   green: "bg-green-50 text-green-700",
   gray: "bg-gray-100 text-gray-600",
   amber: "bg-amber-50 text-amber-700",
+  purple: "bg-purple-50 text-purple-700",
 };
 
 export function Badge({
