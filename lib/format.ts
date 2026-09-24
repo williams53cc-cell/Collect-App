@@ -67,3 +67,15 @@ export function daysOverdue(dueDate: string | null): number {
   const diff = toUTCDayNumber(todayISODate()) - toUTCDayNumber(dueDate);
   return Math.max(0, Math.round(diff));
 }
+
+/** Same math as daysOverdue(), but NOT clamped: positive when `date` is in
+ * the past, negative when it's still upcoming, 0 when it's today. Badges
+ * and stats want the clamped version (a not-yet-due follow-up isn't
+ * "-3 days overdue" for a status pill) so they should keep using
+ * daysOverdue(). Message wording wants this one, so it can say "due in 3
+ * days" instead of silently treating every future date as "due today". */
+export function signedDaysFromToday(date: string | null): number {
+  if (!date) return 0;
+  const diff = toUTCDayNumber(todayISODate()) - toUTCDayNumber(date);
+  return Math.round(diff);
+}
