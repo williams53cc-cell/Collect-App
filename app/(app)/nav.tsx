@@ -22,7 +22,7 @@ export function Nav() {
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center gap-8">
             <Link href="/dashboard" className="text-lg font-semibold">
-              COLLECT
+                 GripBill
             </Link>
             <div className="hidden items-center gap-1 sm:flex">
               {LINKS.map((link) => (
