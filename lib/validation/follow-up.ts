@@ -1,6 +1,24 @@
 import { z } from "zod";
 
-export const FOLLOW_UP_STATUSES = ["pending", "done", "skipped"] as const;
+export const FOLLOW_UP_STATUSES = [
+  "pending",
+  "needs_call",
+  "done",
+  "skipped",
+] as const;
+
+const STATUS_LABELS: Record<(typeof FOLLOW_UP_STATUSES)[number], string> = {
+  pending: "Pending",
+  needs_call: "Needs a call",
+  done: "Done",
+  skipped: "Skipped",
+};
+
+export function formatStatusLabel(
+  status: (typeof FOLLOW_UP_STATUSES)[number]
+): string {
+  return STATUS_LABELS[status];
+}
 
 export const followUpSchema = z.object({
   reason: z
