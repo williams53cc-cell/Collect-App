@@ -161,22 +161,10 @@ export function DraftMessageDialog({
           )}
 
           <div className="flex flex-col gap-2 sm:flex-row">
-            
-              href={buildSmsLink(phone, message, isIOS)}
-              className={buttonClassName({
-                variant: "secondary",
-                className: "flex-1",
-              })}
-            >
+            <a href={buildSmsLink(phone, message, isIOS)} className={buttonClassName({ variant: "secondary", className: "flex-1" })}>
               Text
             </a>
-            
-              href={buildMailtoLink(email, subject, message)}
-              className={buttonClassName({
-                variant: "secondary",
-                className: "flex-1",
-              })}
-            >
+            <a href={buildMailtoLink(email, subject, message)} className={buttonClassName({ variant: "secondary", className: "flex-1" })}>
               Email
             </a>
             <Button
