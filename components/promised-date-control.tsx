@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
-import { formatDate } from "@/lib/format";
+import { formatDate, todayISODate } from "@/lib/format";
 import { setPromisedDate } from "@/app/(app)/follow-ups/actions";
 
 /** Lets the contractor log the date a customer verbally promised to pay,
@@ -22,6 +22,10 @@ export function PromisedDateControl({
   const [showInput, setShowInput] = useState(false);
   const [value, setValue] = useState(promisedDate ?? "");
   const [error, setError] = useState<string | null>(null);
+  // Once the promised date has passed without being cleared, the badge
+  // flips from a neutral "Promised" to a stronger "Broke promise" — same
+  // spot, same shape, just a state change, so nothing new is added to scan.
+  const isBroken = !!promisedDate && promisedDate < todayISODate();
 
   function save(next: string | null) {
     setError(null);
@@ -39,7 +43,9 @@ export function PromisedDateControl({
     <div className="mt-1">
       {promisedDate ? (
         <div className="flex items-center gap-1">
-          <Badge tone="purple">Promised {formatDate(promisedDate)}</Badge>
+          <Badge tone={isBroken ? "red" : "purple"}>
+            {isBroken ? "Broke promise" : "Promised"} {formatDate(promisedDate)}
+          </Badge>
           <button
             type="button"
             disabled={isPending}
