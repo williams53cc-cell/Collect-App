@@ -100,6 +100,7 @@ export function FollowUpRow({
               amountOwed={customer.amount_owed}
               contact={customer.contact}
               dueDate={followUp.due_date}
+              promisedDate={followUp.promised_date}
             />
           )}
           <ConfirmDialog
