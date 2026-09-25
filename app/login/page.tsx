@@ -1,4 +1,5 @@
 import { login, signup } from "./actions";
+import { PasswordInput } from "@/components/password-input";
 
 export default async function LoginPage({
   searchParams,
@@ -10,7 +11,7 @@ export default async function LoginPage({
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
-                <h1 className="mb-1 text-2xl font-semibold">GripBill</h1>
+        <h1 className="mb-1 text-2xl font-semibold">GripBill</h1>
         <p className="mb-6 text-sm text-gray-500">
           Sign in to track customers and follow-ups.
         </p>
@@ -44,14 +45,10 @@ export default async function LoginPage({
             <label htmlFor="password" className="block text-sm font-medium">
               Password
             </label>
-            <input
+            <PasswordInput
               id="password"
               name="password"
-              type="password"
-              required
-              minLength={6}
               autoComplete="current-password"
-              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
             />
           </div>
           <div className="flex gap-2 pt-2">
