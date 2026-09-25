@@ -26,7 +26,8 @@ interface CustomerSummary {
   name: string;
   job: string | null;
   amount_owed: number;
-  contact: string | null;
+  email: string | null;
+  phone: string | null;
 }
 
 export function FollowUpRow({
@@ -99,7 +100,8 @@ export function FollowUpRow({
               customerName={customer.name}
               customerJob={customer.job}
               amountOwed={customer.amount_owed}
-              contact={customer.contact}
+              email={customer.email}
+              phone={customer.phone}
               dueDate={followUp.due_date}
               promisedDate={followUp.promised_date}
             />
