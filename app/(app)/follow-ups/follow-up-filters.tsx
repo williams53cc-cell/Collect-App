@@ -14,7 +14,7 @@ export function FollowUpFilters({ active }: { active: FollowUpFilterKey }) {
             href={href}
             className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
               isActive
-                ? "bg-gray-900 text-white"
+                ? "bg-blue-600 text-white"
                 : "text-gray-600 hover:bg-gray-100"
             }`}
           >
