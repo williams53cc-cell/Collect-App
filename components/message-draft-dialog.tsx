@@ -129,7 +129,7 @@ export function DraftMessageDialog({
                 onClick={() => applyTone(t)}
                 className={`rounded-md border px-2 py-2 text-left text-xs transition-colors ${
                   tone === t
-                    ? "border-gray-900 bg-gray-900 text-white"
+                    ? "border-blue-600 bg-blue-600 text-white"
                     : "border-gray-300 text-gray-600 hover:bg-gray-50"
                 }`}
               >
