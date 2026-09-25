@@ -67,7 +67,7 @@ export async function GET(request: Request) {
   const digests = computeDigestsForAllUsers(followUps, today, amountByCustomerId);
 
   const dashboardUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/dashboard`;
-  const from = process.env.EMAIL_FROM ?? "COLLECT <onboarding@resend.dev>";
+    const from = process.env.EMAIL_FROM ?? "GripBill <onboarding@resend.dev>";
   const resend = getResendClient();
 
   let sent = 0;
