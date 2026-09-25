@@ -29,7 +29,8 @@ export async function createCustomer(
   const { error } = await supabase.from("customers").insert({
     user_id: user.id,
     name: parsed.data.name,
-    contact: parsed.data.contact || null,
+    email: parsed.data.email || null,
+    phone: parsed.data.phone || null,
     job: parsed.data.job || null,
     amount_owed: parsed.data.amount_owed,
     status: parsed.data.status,
@@ -43,6 +44,49 @@ export async function createCustomer(
   revalidatePath("/customers");
   revalidatePath("/dashboard");
   return { ...initialFormState, status: "success", message: "Customer added." };
+}
+
+/** Full edit — name, contact, job, amount owed, status, and notes — as
+ * opposed to updateCustomerStatus() below, which only ever touches status
+ * from the quick dropdown on the customer detail page. Before this, there
+ * was no way to fix a customer's contact or job after creating them; this
+ * is what backs the "Edit" dialog on the customer detail page. */
+export async function updateCustomer(
+  customerId: string,
+  _prevState: FormState,
+  formData: FormData
+): Promise<FormState> {
+  const parsed = parseCustomerForm(formData);
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: "Check the highlighted fields.",
+      errors: parsed.error.flatten().fieldErrors,
+    };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("customers")
+    .update({
+      name: parsed.data.name,
+      email: parsed.data.email || null,
+      phone: parsed.data.phone || null,
+      job: parsed.data.job || null,
+      amount_owed: parsed.data.amount_owed,
+      status: parsed.data.status,
+      notes: parsed.data.notes || null,
+    })
+    .eq("id", customerId);
+
+  if (error) {
+    return { status: "error", message: error.message };
+  }
+
+  revalidatePath("/customers");
+  revalidatePath(`/customers/${customerId}`);
+  revalidatePath("/dashboard");
+  return { ...initialFormState, status: "success", message: "Customer updated." };
 }
 
 export async function updateCustomerStatus(
