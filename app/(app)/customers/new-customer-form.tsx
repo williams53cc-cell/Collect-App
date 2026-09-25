@@ -88,3 +88,51 @@ export function NewCustomerDialog() {
                 step="0.01"
                 min="0"
                 defaultValue="0"
+                invalid={!!errors.amount_owed}
+              />
+            </Field>
+          </div>
+
+          <Field label="Status" htmlFor="status" error={errors.status?.[0]}>
+            <Select
+              id="status"
+              name="status"
+              defaultValue="active"
+              invalid={!!errors.status}
+            >
+              {CUSTOMER_STATUSES.map((status) => (
+                <option key={status} value={status}>
+                  {status[0].toUpperCase() + status.slice(1)}
+                </option>
+              ))}
+            </Select>
+          </Field>
+
+          <Field label="Notes" htmlFor="notes" error={errors.notes?.[0]}>
+            <Textarea
+              id="notes"
+              name="notes"
+              rows={2}
+              invalid={!!errors.notes}
+            />
+          </Field>
+
+          {state.status === "error" && state.message && (
+            <Alert variant="error">{state.message}</Alert>
+          )}
+
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => dialogRef.current?.close()}
+            >
+              Cancel
+            </Button>
+            <SubmitButton>Add customer</SubmitButton>
+          </div>
+        </form>
+      </Dialog>
+    </>
+  );
+}
