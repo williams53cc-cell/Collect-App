@@ -50,7 +50,8 @@ export default async function CustomersPage({
               <thead className="bg-gray-50 text-xs uppercase text-gray-500">
                 <tr>
                   <th className="px-4 py-3">Name</th>
-                  <th className="px-4 py-3">Contact</th>
+                  <th className="px-4 py-3">Email</th>
+                  <th className="px-4 py-3">Phone</th>
                   <th className="px-4 py-3">Job</th>
                   <th className="px-4 py-3">Amount owed</th>
                   <th className="px-4 py-3">Status</th>
@@ -68,7 +69,10 @@ export default async function CustomersPage({
                       </Link>
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-gray-600">
-                      {customer.contact ?? "—"}
+                      {customer.email ?? "—"}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 text-gray-600">
+                      {customer.phone ?? "—"}
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-gray-600">
                       {customer.job ?? "—"}
