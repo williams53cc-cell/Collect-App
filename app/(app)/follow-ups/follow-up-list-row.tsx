@@ -89,7 +89,8 @@ export function FollowUpListRow({
               customerName={followUp.customerName}
               customerJob={followUp.customerJob}
               amountOwed={followUp.customerAmountOwed}
-              contact={followUp.customerContact}
+              email={followUp.customerEmail}
+              phone={followUp.customerPhone}
               dueDate={followUp.due_date}
               promisedDate={followUp.promised_date}
             />
