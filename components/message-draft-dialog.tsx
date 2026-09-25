@@ -12,13 +12,7 @@ import {
   renderMessage,
   type MessageTone,
 } from "@/lib/message-templates";
-import {
-  buildMailtoLink,
-  buildSmsLink,
-  extractEmail,
-  extractPhone,
-  isIOSDevice,
-} from "@/lib/contact-links";
+import { buildMailtoLink, buildSmsLink, isIOSDevice } from "@/lib/contact-links";
 
 // Follow-ups always have a due date (enforced by the `due_date` NOT NULL
 // constraint and required form/schema validation), so this only ever
@@ -37,7 +31,8 @@ interface DraftMessageDialogProps {
   customerName: string;
   customerJob: string | null;
   amountOwed: number;
-  contact: string | null;
+  email: string | null;
+  phone: string | null;
   dueDate: string;
   /** The date the customer verbally promised to pay, if one has been
    * logged. Once set, it's a stronger signal than our own due_date, so it
@@ -49,7 +44,8 @@ export function DraftMessageDialog({
   customerName,
   customerJob,
   amountOwed,
-  contact,
+  email,
+  phone,
   dueDate,
   promisedDate,
 }: DraftMessageDialogProps) {
@@ -59,15 +55,9 @@ export function DraftMessageDialog({
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">(
     "idle"
   );
-  // Set once on mount; only matters at click time (dialog starts closed), so
-  // there's no SSR/hydration mismatch to worry about.
   const [isIOS, setIsIOS] = useState(false);
   useEffect(() => setIsIOS(isIOSDevice()), []);
 
-  // Once a customer has promised a date, that promise is the stronger
-  // signal — both the tone and the day-count switch to counting from it
-  // instead of our own due_date. Signed (not clamped), so "due in 3 days"
-  // reads correctly instead of every future date claiming "due today".
   const effectiveDate = promisedDate ?? dueDate;
   const overdueDays = signedDaysFromToday(effectiveDate);
   const promisedDateLabel = promisedDate ? formatDate(promisedDate) : null;
@@ -96,8 +86,6 @@ export function DraftMessageDialog({
     dialogRef.current?.open();
   }
 
-  const phone = extractPhone(contact);
-  const email = extractEmail(contact);
   const subject = customerJob
     ? `Following up on ${customerJob}`
     : "Following up on your balance";
@@ -166,8 +154,8 @@ export function DraftMessageDialog({
 
           {!phone && !email && (
             <p className="text-xs text-gray-400">
-              No phone or email detected in the contact field — Text and
-              Email will open with no recipient pre-filled.
+              No phone or email on file for this customer — Text and Email
+              will open with no recipient pre-filled.
             </p>
           )}
 
