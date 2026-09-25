@@ -13,10 +13,20 @@ export const customerSchema = z.object({
     .trim()
     .min(1, "Name is required.")
     .max(200, "Name must be 200 characters or fewer."),
-  contact: z
+  email: z
     .string()
     .trim()
-    .max(200, "Contact must be 200 characters or fewer.")
+    .max(200, "Email must be 200 characters or fewer.")
+    .refine(
+      (value) => value === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
+      "Enter a valid email address."
+    )
+    .optional()
+    .or(z.literal("")),
+  phone: z
+    .string()
+    .trim()
+    .max(50, "Phone must be 50 characters or fewer.")
     .optional()
     .or(z.literal("")),
   job: z
@@ -45,7 +55,8 @@ export type CustomerInput = z.infer<typeof customerSchema>;
 export function parseCustomerForm(formData: FormData) {
   return customerSchema.safeParse({
     name: formData.get("name"),
-    contact: formData.get("contact"),
+    email: formData.get("email"),
+    phone: formData.get("phone"),
     job: formData.get("job"),
     amount_owed: formData.get("amount_owed") || 0,
     status: formData.get("status"),
