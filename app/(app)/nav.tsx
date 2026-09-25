@@ -61,7 +61,7 @@ function TopLink({ href, label }: { href: string; label: string }) {
       href={href}
       className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
         isActive
-          ? "bg-gray-100 text-gray-900"
+          ? "bg-blue-50 text-blue-700"
           : "text-gray-500 hover:text-gray-900"
       }`}
     >
@@ -76,12 +76,12 @@ function BottomLink({ href, label }: { href: string; label: string }) {
     <Link
       href={href}
       className={`flex flex-col items-center gap-0.5 py-2.5 text-xs font-medium transition-colors ${
-        isActive ? "text-gray-900" : "text-gray-400"
+        isActive ? "text-blue-700" : "text-gray-400"
       }`}
     >
       <span
         className={`h-1.5 w-1.5 rounded-full ${
-          isActive ? "bg-gray-900" : "bg-transparent"
+          isActive ? "bg-blue-600" : "bg-transparent"
         }`}
       />
       {label}
