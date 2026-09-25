@@ -47,18 +47,27 @@ export function NewCustomerDialog() {
           </Field>
 
           <div className="grid grid-cols-2 gap-4">
-            <Field
-              label="Contact"
-              htmlFor="contact"
-              error={errors.contact?.[0]}
-            >
+            <Field label="Email" htmlFor="email" error={errors.email?.[0]}>
               <Input
-                id="contact"
-                name="contact"
-                invalid={!!errors.contact}
+                id="email"
+                name="email"
+                type="email"
+                invalid={!!errors.email}
                 placeholder="jordan@email.com"
               />
             </Field>
+            <Field label="Phone" htmlFor="phone" error={errors.phone?.[0]}>
+              <Input
+                id="phone"
+                name="phone"
+                type="tel"
+                invalid={!!errors.phone}
+                placeholder="(555) 123-4567"
+              />
+            </Field>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <Field label="Job" htmlFor="job" error={errors.job?.[0]}>
               <Input
                 id="job"
@@ -67,9 +76,6 @@ export function NewCustomerDialog() {
                 placeholder="Kitchen remodel"
               />
             </Field>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
             <Field
               label="Amount owed"
               htmlFor="amount_owed"
@@ -82,50 +88,3 @@ export function NewCustomerDialog() {
                 step="0.01"
                 min="0"
                 defaultValue="0"
-                invalid={!!errors.amount_owed}
-              />
-            </Field>
-            <Field label="Status" htmlFor="status" error={errors.status?.[0]}>
-              <Select
-                id="status"
-                name="status"
-                defaultValue="active"
-                invalid={!!errors.status}
-              >
-                {CUSTOMER_STATUSES.map((status) => (
-                  <option key={status} value={status}>
-                    {status[0].toUpperCase() + status.slice(1)}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-          </div>
-
-          <Field label="Notes" htmlFor="notes" error={errors.notes?.[0]}>
-            <Textarea
-              id="notes"
-              name="notes"
-              rows={2}
-              invalid={!!errors.notes}
-            />
-          </Field>
-
-          {state.status === "error" && state.message && (
-            <Alert variant="error">{state.message}</Alert>
-          )}
-
-          <div className="flex justify-end gap-2 pt-2">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => dialogRef.current?.close()}
-            >
-              Cancel
-            </Button>
-            <SubmitButton>Add customer</SubmitButton>
-          </div>
-        </form>
-      </Dialog>
-    </>
-  );
-}
