@@ -68,7 +68,7 @@ export function buildDigestEmail(data: DigestEmailData): DigestEmailContent {
           <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;background-color:#ffffff;border:1px solid #e5e7eb;border-radius:8px;">
             <tr>
               <td style="padding:32px;">
-                <p style="margin:0 0 16px;font-size:13px;font-weight:600;letter-spacing:0.02em;color:#6b7280;">COLLECT</p>
+                                <p style="margin:0 0 16px;font-size:13px;font-weight:600;letter-spacing:0.02em;color:#6b7280;">GripBill</p>
                 <p style="margin:0 0 24px;font-size:16px;line-height:1.5;color:#111827;">${summary}</p>
                 <a href="${data.dashboardUrl}" style="display:inline-block;background-color:#111827;color:#ffffff;text-decoration:none;padding:10px 20px;border-radius:6px;font-size:14px;font-weight:500;">View Dashboard</a>
               </td>
