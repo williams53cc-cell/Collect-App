@@ -1,19 +1,3 @@
-/** `contact` is a single free-text field, so these are best-effort guesses at
- * whether it holds a phone number, an email, or something else entirely. */
-
-export function extractPhone(contact: string | null): string | null {
-  if (!contact) return null;
-  const cleaned = contact.replace(/[^\d+]/g, "");
-  const digitCount = cleaned.replace(/\D/g, "").length;
-  return digitCount >= 7 ? cleaned : null;
-}
-
-export function extractEmail(contact: string | null): string | null {
-  if (!contact) return null;
-  const trimmed = contact.trim();
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed) ? trimmed : null;
-}
-
 /** Reads `navigator`, so only call this from an effect/handler on the client
  * — never during render, or the server-rendered markup (no `navigator`) will
  * mismatch the client's first paint. */
