@@ -10,6 +10,8 @@ export interface Database {
           user_id: string;
           name: string;
           contact: string | null;
+          email: string | null;
+          phone: string | null;
           job: string | null;
           amount_owed: number;
           status: CustomerStatus;
@@ -21,6 +23,8 @@ export interface Database {
           user_id?: string;
           name: string;
           contact?: string | null;
+          email?: string | null;
+          phone?: string | null;
           job?: string | null;
           amount_owed?: number;
           status?: CustomerStatus;
@@ -32,6 +36,8 @@ export interface Database {
           user_id?: string;
           name?: string;
           contact?: string | null;
+          email?: string | null;
+          phone?: string | null;
           job?: string | null;
           amount_owed?: number;
           status?: CustomerStatus;
