@@ -8,6 +8,7 @@ import { NewFollowUpForm } from "./new-follow-up-form";
 import { FollowUpRow } from "./follow-up-row";
 import { CustomerStatusSelect } from "./customer-status-select";
 import { DeleteCustomerButton } from "./delete-customer-button";
+import { EditCustomerDialog } from "./edit-customer-dialog";
 
 export default async function CustomerDetailPage({
   params,
@@ -35,13 +36,26 @@ export default async function CustomerDetailPage({
             <h1 className="text-xl font-semibold">{customer.name}</h1>
             <p className="text-sm text-gray-500">
               {customer.job ?? "No job set"} ·{" "}
-              {customer.contact ?? "No contact"}
+              {[customer.email, customer.phone].filter(Boolean).join(" · ") ||
+                "No contact info"}
             </p>
           </div>
-          <DeleteCustomerButton
-            customerId={customer.id}
-            customerName={customer.name}
-          />
+          <div className="flex items-center gap-2">
+            <EditCustomerDialog
+              customerId={customer.id}
+              name={customer.name}
+              email={customer.email}
+              phone={customer.phone}
+              job={customer.job}
+              amountOwed={Number(customer.amount_owed)}
+              status={customer.status}
+              notes={customer.notes}
+            />
+            <DeleteCustomerButton
+              customerId={customer.id}
+              customerName={customer.name}
+            />
+          </div>
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
