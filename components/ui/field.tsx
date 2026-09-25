@@ -6,14 +6,14 @@ import type {
 } from "react";
 
 const baseFieldClasses =
-  "w-full rounded-md border bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/10 disabled:cursor-not-allowed disabled:bg-gray-50";
+  "w-full rounded-md border bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600/10 disabled:cursor-not-allowed disabled:bg-gray-50";
 
 function fieldClasses(invalid: boolean | undefined, className: string) {
   return [
     baseFieldClasses,
     invalid
       ? "border-red-400 focus:border-red-500"
-      : "border-gray-300 focus:border-gray-500",
+      : "border-gray-300 focus:border-blue-500",
     className,
   ].join(" ");
 }
