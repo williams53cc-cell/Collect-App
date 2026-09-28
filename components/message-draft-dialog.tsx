@@ -13,6 +13,7 @@ import {
   type MessageTone,
 } from "@/lib/message-templates";
 import { buildMailtoLink, buildSmsLink, isIOSDevice } from "@/lib/contact-links";
+import { buildPaypalLink } from "@/lib/paypal";
 
 // Follow-ups always have a due date (enforced by the `due_date` NOT NULL
 // constraint and required form/schema validation), so this only ever
@@ -38,6 +39,10 @@ interface DraftMessageDialogProps {
    * logged. Once set, it's a stronger signal than our own due_date, so it
    * drives both the day-count/tone and the message wording instead. */
   promisedDate: string | null;
+  /** The contractor's own PayPal.me username, saved in Settings — null
+   * when they haven't set one up yet. When present, every drafted message
+   * includes a payment link pre-filled with this customer's balance. */
+  paypalUsername: string | null;
 }
 
 export function DraftMessageDialog({
@@ -48,6 +53,7 @@ export function DraftMessageDialog({
   phone,
   dueDate,
   promisedDate,
+  paypalUsername,
 }: DraftMessageDialogProps) {
   const dialogRef = useRef<DialogHandle>(null);
   const [tone, setTone] = useState<MessageTone>("friendly");
@@ -62,6 +68,9 @@ export function DraftMessageDialog({
   const overdueDays = signedDaysFromToday(effectiveDate);
   const promisedDateLabel = promisedDate ? formatDate(promisedDate) : null;
   const promiseBroken = promisedDate ? promisedDate < todayISODate() : false;
+  const paymentLink = paypalUsername
+    ? buildPaypalLink(paypalUsername, amountOwed)
+    : null;
   const messageContext = {
     name: customerName,
     job: customerJob?.trim() || null,
@@ -71,6 +80,7 @@ export function DraftMessageDialog({
     dueDateLabel: formatDate(dueDate),
     promisedDateLabel,
     promiseBroken,
+    paymentLink,
   };
 
   function applyTone(nextTone: MessageTone) {
