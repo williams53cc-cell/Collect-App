@@ -8,6 +8,7 @@ const LINKS = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/customers", label: "Customers" },
   { href: "/follow-ups", label: "Follow-ups" },
+  { href: "/settings", label: "Settings" },
 ];
 
 function useIsActive(href: string) {
@@ -22,7 +23,7 @@ export function Nav() {
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center gap-8">
             <Link href="/dashboard" className="text-lg font-semibold">
-                 GripBill
+              GripBill
             </Link>
             <div className="hidden items-center gap-1 sm:flex">
               {LINKS.map((link) => (
@@ -44,7 +45,7 @@ export function Nav() {
       {/* Bottom tab bar: mobile only. Thumb-reachable, always visible — no
           hidden or scrolled-off destinations on a phone-sized screen. */}
       <nav className="fixed inset-x-0 bottom-0 z-10 border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)] sm:hidden">
-        <div className="grid grid-cols-3">
+        <div className="grid grid-cols-4">
           {LINKS.map((link) => (
             <BottomLink key={link.href} href={link.href} label={link.label} />
           ))}
