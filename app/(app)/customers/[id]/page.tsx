@@ -9,6 +9,7 @@ import { FollowUpRow } from "./follow-up-row";
 import { CustomerStatusSelect } from "./customer-status-select";
 import { DeleteCustomerButton } from "./delete-customer-button";
 import { EditCustomerDialog } from "./edit-customer-dialog";
+import { createClient } from "@/utils/supabase/server";
 
 export default async function CustomerDetailPage({
   params,
@@ -20,6 +21,13 @@ export default async function CustomerDetailPage({
   if (!customer) notFound();
 
   const followUps = await getFollowUpsForCustomer(id);
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const paypalUsername =
+    (user?.user_metadata?.paypal_username as string | undefined) ?? null;
 
   return (
     <div className="space-y-6">
@@ -110,6 +118,7 @@ export default async function CustomerDetailPage({
                         key={followUp.id}
                         followUp={followUp}
                         customer={customer}
+                        paypalUsername={paypalUsername}
                       />
                     ))}
                   </tbody>
