@@ -16,8 +16,10 @@ import { deleteFollowUp, updateFollowUpStatus } from "./actions";
 
 export function FollowUpListRow({
   followUp,
+  paypalUsername,
 }: {
   followUp: FollowUpWithCustomer;
+  paypalUsername: string | null;
 }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -93,6 +95,7 @@ export function FollowUpListRow({
               phone={followUp.customerPhone}
               dueDate={followUp.due_date}
               promisedDate={followUp.promised_date}
+              paypalUsername={paypalUsername}
             />
           )}
           {followUp.status === "needs_call" && (
