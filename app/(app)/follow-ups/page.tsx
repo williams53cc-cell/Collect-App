@@ -6,6 +6,7 @@ import {
 import { EmptyState } from "@/components/ui/empty-state";
 import { FollowUpFilters } from "./follow-up-filters";
 import { FollowUpListRow } from "./follow-up-list-row";
+import { createClient } from "@/utils/supabase/server";
 
 const FILTER_KEYS = FOLLOW_UP_FILTERS.map((filter) => filter.key);
 
@@ -23,6 +24,13 @@ export default async function FollowUpsPage({
   const params = await searchParams;
   const filter = parseFilter(params.filter);
   const followUps = await getFollowUps(filter);
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const paypalUsername =
+    (user?.user_metadata?.paypal_username as string | undefined) ?? null;
 
   return (
     <div className="space-y-6">
@@ -55,7 +63,11 @@ export default async function FollowUpsPage({
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {followUps.map((followUp) => (
-                  <FollowUpListRow key={followUp.id} followUp={followUp} />
+                  <FollowUpListRow
+                    key={followUp.id}
+                    followUp={followUp}
+                    paypalUsername={paypalUsername}
+                  />
                 ))}
               </tbody>
             </table>
