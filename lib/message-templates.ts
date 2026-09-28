@@ -48,6 +48,11 @@ export interface MessageContext {
    * date right away instead of waiting for the usual overdue thresholds —
    * a broken promise is a stronger signal than a plain missed due date. */
   promiseBroken?: boolean;
+  /** A pre-filled PayPal.me payment link for this customer's balance, or
+   * null/undefined when the contractor hasn't saved a PayPal.me username
+   * in Settings yet. When present, every tone appends a line inviting the
+   * customer to pay directly instead of leaving that as a separate step. */
+  paymentLink?: string | null;
 }
 
 /** ", due in 3 days" / ", due in 1 day" / ", due today" / ", now 8 days
@@ -191,7 +196,13 @@ const BUILDERS: Record<MessageTone, (ctx: MessageContext) => string> = {
 
 /** Every message ends with a bare "Thanks," on its own line so the sender
  * can type their own name after it — there's no sender-name field in the
- * app to fill this in automatically. */
+ * app to fill this in automatically. When a payment link is available, it
+ * goes on its own line just before that sign-off, so the customer sees it
+ * without having to ask how to pay. */
 export function renderMessage(tone: MessageTone, ctx: MessageContext): string {
-  return `${BUILDERS[tone](ctx)}\n\nThanks,`;
+  const body = BUILDERS[tone](ctx);
+  const paymentLine = ctx.paymentLink
+    ? `\n\nYou can pay here: ${ctx.paymentLink}`
+    : "";
+  return `${body}${paymentLine}\n\nThanks,`;
 }
