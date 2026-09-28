@@ -33,9 +33,11 @@ interface CustomerSummary {
 export function FollowUpRow({
   followUp,
   customer,
+  paypalUsername,
 }: {
   followUp: FollowUp;
   customer: CustomerSummary;
+  paypalUsername: string | null;
 }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -104,6 +106,7 @@ export function FollowUpRow({
               phone={customer.phone}
               dueDate={followUp.due_date}
               promisedDate={followUp.promised_date}
+              paypalUsername={paypalUsername}
             />
           )}
           {followUp.status === "needs_call" && (
