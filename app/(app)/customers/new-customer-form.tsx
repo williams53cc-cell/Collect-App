@@ -1,12 +1,18 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { Alert } from "@/components/ui/alert";
 import { Dialog, type DialogHandle } from "@/components/ui/dialog";
-import { CUSTOMER_STATUSES } from "@/lib/validation/customer";
+import {
+  CUSTOMER_STATUSES,
+  PAYMENT_TRIGGER_LABELS,
+  PAYMENT_TRIGGERS,
+  PAYMENT_TYPE_LABELS,
+  PAYMENT_TYPES,
+} from "@/lib/validation/customer";
 import { initialFormState } from "@/lib/form-state";
 import { createCustomer } from "./actions";
 
@@ -17,10 +23,14 @@ export function NewCustomerDialog() {
     createCustomer,
     initialFormState
   );
+  // Drives whether the "Trigger details" field shows up — only relevant
+  // once the contractor picks "Custom" as the trigger.
+  const [paymentTrigger, setPaymentTrigger] = useState("");
 
   useEffect(() => {
     if (state.status === "success") {
       formRef.current?.reset();
+      setPaymentTrigger("");
       dialogRef.current?.close();
     }
   }, [state]);
@@ -107,6 +117,64 @@ export function NewCustomerDialog() {
               ))}
             </Select>
           </Field>
+
+          <div className="grid grid-cols-2 gap-4">
+            <Field
+              label="Payment type"
+              htmlFor="payment_type"
+              required
+              error={errors.payment_type?.[0]}
+            >
+              <Select
+                id="payment_type"
+                name="payment_type"
+                defaultValue="other"
+                invalid={!!errors.payment_type}
+              >
+                {PAYMENT_TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {PAYMENT_TYPE_LABELS[type]}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field
+              label="Payment trigger"
+              htmlFor="payment_trigger"
+              error={errors.payment_trigger?.[0]}
+              hint="Optional — what needs to happen before this is due?"
+            >
+              <Select
+                id="payment_trigger"
+                name="payment_trigger"
+                value={paymentTrigger}
+                onChange={(event) => setPaymentTrigger(event.target.value)}
+                invalid={!!errors.payment_trigger}
+              >
+                <option value="">— Not set —</option>
+                {PAYMENT_TRIGGERS.map((trigger) => (
+                  <option key={trigger} value={trigger}>
+                    {PAYMENT_TRIGGER_LABELS[trigger]}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          </div>
+
+          {paymentTrigger === "custom" && (
+            <Field
+              label="Trigger details"
+              htmlFor="payment_trigger_note"
+              error={errors.payment_trigger_note?.[0]}
+              hint='E.g. "After tile installation is complete."'
+            >
+              <Input
+                id="payment_trigger_note"
+                name="payment_trigger_note"
+                invalid={!!errors.payment_trigger_note}
+              />
+            </Field>
+          )}
 
           <Field label="Notes" htmlFor="notes" error={errors.notes?.[0]}>
             <Textarea
