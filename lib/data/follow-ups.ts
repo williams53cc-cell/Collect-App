@@ -1,6 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { todayISODate } from "@/lib/format";
-import type { FollowUpStatus } from "@/types/database";
+import type { FollowUpStatus, PaymentTrigger, PaymentType } from "@/types/database";
 
 export type FollowUpFilterKey =
   | "all"
@@ -36,6 +36,9 @@ export interface FollowUpWithCustomer {
   customerAmountOwed: number;
   customerEmail: string | null;
   customerPhone: string | null;
+  customerPaymentType: PaymentType | null;
+  customerPaymentTrigger: PaymentTrigger | null;
+  customerPaymentTriggerNote: string | null;
 }
 
 export async function getFollowUps(
@@ -72,7 +75,9 @@ export async function getFollowUps(
   );
   const { data: customers, error: customersError } = await supabase
     .from("customers")
-    .select("id, name, job, amount_owed, email, phone")
+    .select(
+      "id, name, job, amount_owed, email, phone, payment_type, payment_trigger, payment_trigger_note"
+    )
     .in("id", customerIds);
 
   if (customersError) throw new Error(customersError.message);
@@ -90,6 +95,9 @@ export async function getFollowUps(
       customerAmountOwed: customer ? Number(customer.amount_owed) : 0,
       customerEmail: customer?.email ?? null,
       customerPhone: customer?.phone ?? null,
+      customerPaymentType: customer?.payment_type ?? null,
+      customerPaymentTrigger: customer?.payment_trigger ?? null,
+      customerPaymentTriggerNote: customer?.payment_trigger_note ?? null,
     };
   });
 }
