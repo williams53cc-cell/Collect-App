@@ -9,7 +9,7 @@ import { CallScriptDialog } from "@/components/call-script-dialog";
 import { PromisedDateControl } from "@/components/promised-date-control";
 import { formatDate, isOverdue } from "@/lib/format";
 import { FOLLOW_UP_STATUSES, formatStatusLabel } from "@/lib/validation/follow-up";
-import type { FollowUpStatus } from "@/types/database";
+import type { FollowUpStatus, PaymentTrigger, PaymentType } from "@/types/database";
 import { deleteFollowUp, updateFollowUpStatus } from "../../follow-ups/actions";
 
 interface FollowUp {
@@ -28,6 +28,9 @@ interface CustomerSummary {
   amount_owed: number;
   email: string | null;
   phone: string | null;
+  payment_type: PaymentType | null;
+  payment_trigger: PaymentTrigger | null;
+  payment_trigger_note: string | null;
 }
 
 export function FollowUpRow({
@@ -107,6 +110,9 @@ export function FollowUpRow({
               dueDate={followUp.due_date}
               promisedDate={followUp.promised_date}
               paypalUsername={paypalUsername}
+              paymentType={customer.payment_type}
+              paymentTrigger={customer.payment_trigger}
+              paymentTriggerNote={customer.payment_trigger_note}
             />
           )}
           {followUp.status === "needs_call" && (
