@@ -6,6 +6,11 @@ import { createClient } from "@/utils/supabase/server";
 import { parseCustomerForm } from "@/lib/validation/customer";
 import { initialFormState, type FormState } from "@/lib/form-state";
 import type { CustomerStatus } from "@/types/database";
+import { logCustomerEvent } from "@/lib/data/customer-events";
+import {
+  amountOwedChangedEvent,
+  customerAddedEvent,
+} from "@/lib/customer-events";
 
 export async function createCustomer(
   _prevState: FormState,
@@ -26,20 +31,30 @@ export async function createCustomer(
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { error } = await supabase.from("customers").insert({
-    user_id: user.id,
-    name: parsed.data.name,
-    email: parsed.data.email || null,
-    phone: parsed.data.phone || null,
-    job: parsed.data.job || null,
-    amount_owed: parsed.data.amount_owed,
-    status: parsed.data.status,
-    notes: parsed.data.notes || null,
-  });
+  const { data: created, error } = await supabase
+    .from("customers")
+    .insert({
+      user_id: user.id,
+      name: parsed.data.name,
+      email: parsed.data.email || null,
+      phone: parsed.data.phone || null,
+      job: parsed.data.job || null,
+      amount_owed: parsed.data.amount_owed,
+      status: parsed.data.status,
+      notes: parsed.data.notes || null,
+    })
+    .select("id")
+    .single();
 
   if (error) {
     return { status: "error", message: error.message };
   }
+
+  await logCustomerEvent(
+    supabase,
+    created.id,
+    customerAddedEvent(parsed.data.amount_owed, parsed.data.job || null)
+  );
 
   revalidatePath("/customers");
   revalidatePath("/dashboard");
@@ -66,6 +81,16 @@ export async function updateCustomer(
   }
 
   const supabase = await createClient();
+
+  // Fetched before the update so the timeline can say what the amount
+  // changed FROM — the update below overwrites it, so this has to happen
+  // first.
+  const { data: existing } = await supabase
+    .from("customers")
+    .select("amount_owed")
+    .eq("id", customerId)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("customers")
     .update({
@@ -81,6 +106,14 @@ export async function updateCustomer(
 
   if (error) {
     return { status: "error", message: error.message };
+  }
+
+  if (existing && Number(existing.amount_owed) !== parsed.data.amount_owed) {
+    await logCustomerEvent(
+      supabase,
+      customerId,
+      amountOwedChangedEvent(Number(existing.amount_owed), parsed.data.amount_owed)
+    );
   }
 
   revalidatePath("/customers");
