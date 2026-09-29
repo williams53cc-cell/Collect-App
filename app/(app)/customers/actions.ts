@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { parseCustomerForm } from "@/lib/validation/customer";
 import { initialFormState, type FormState } from "@/lib/form-state";
-import type { CustomerStatus } from "@/types/database";
+import type { CustomerStatus, PaymentTrigger } from "@/types/database";
 import { logCustomerEvent } from "@/lib/data/customer-events";
 import {
   amountOwedChangedEvent,
@@ -31,6 +31,9 @@ export async function createCustomer(
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  const paymentTrigger = (parsed.data.payment_trigger || null) as PaymentTrigger | null;
+  const paymentTriggerNote = parsed.data.payment_trigger_note || null;
+
   const { data: created, error } = await supabase
     .from("customers")
     .insert({
@@ -41,6 +44,9 @@ export async function createCustomer(
       job: parsed.data.job || null,
       amount_owed: parsed.data.amount_owed,
       status: parsed.data.status,
+      payment_type: parsed.data.payment_type,
+      payment_trigger: paymentTrigger,
+      payment_trigger_note: paymentTriggerNote,
       notes: parsed.data.notes || null,
     })
     .select("id")
@@ -53,7 +59,13 @@ export async function createCustomer(
   await logCustomerEvent(
     supabase,
     created.id,
-    customerAddedEvent(parsed.data.amount_owed, parsed.data.job || null)
+    customerAddedEvent(
+      parsed.data.amount_owed,
+      parsed.data.job || null,
+      parsed.data.payment_type,
+      paymentTrigger,
+      paymentTriggerNote
+    )
   );
 
   revalidatePath("/customers");
@@ -100,6 +112,9 @@ export async function updateCustomer(
       job: parsed.data.job || null,
       amount_owed: parsed.data.amount_owed,
       status: parsed.data.status,
+      payment_type: parsed.data.payment_type,
+      payment_trigger: (parsed.data.payment_trigger || null) as PaymentTrigger | null,
+      payment_trigger_note: parsed.data.payment_trigger_note || null,
       notes: parsed.data.notes || null,
     })
     .eq("id", customerId);
