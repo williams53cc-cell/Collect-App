@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCustomer } from "@/lib/data/customers";
 import { getFollowUpsForCustomer } from "@/lib/data/follow-ups";
+import { getCustomerEvents } from "@/lib/data/customer-events";
 import { formatCurrency } from "@/lib/format";
 import { EmptyState } from "@/components/ui/empty-state";
 import { NewFollowUpForm } from "./new-follow-up-form";
@@ -9,6 +10,7 @@ import { FollowUpRow } from "./follow-up-row";
 import { CustomerStatusSelect } from "./customer-status-select";
 import { DeleteCustomerButton } from "./delete-customer-button";
 import { EditCustomerDialog } from "./edit-customer-dialog";
+import { CustomerTimeline } from "@/components/customer-timeline";
 import { createClient } from "@/utils/supabase/server";
 
 export default async function CustomerDetailPage({
@@ -21,6 +23,7 @@ export default async function CustomerDetailPage({
   if (!customer) notFound();
 
   const followUps = await getFollowUpsForCustomer(id);
+  const events = await getCustomerEvents(id);
 
   const supabase = await createClient();
   const {
@@ -126,6 +129,13 @@ export default async function CustomerDetailPage({
               </div>
             )}
           </div>
+        </div>
+      </div>
+
+      <div>
+        <h2 className="mb-3 text-lg font-semibold">Timeline</h2>
+        <div className="rounded-lg border border-gray-200 bg-white p-4 sm:p-6">
+          <CustomerTimeline events={events} />
         </div>
       </div>
     </div>
