@@ -20,10 +20,7 @@ export const PAYMENT_TYPES = [
   "other",
 ] as const;
 
-export const PAYMENT_TYPE_LABELS: Record
-  (typeof PAYMENT_TYPES)[number],
-  string
-> = {
+export const PAYMENT_TYPE_LABELS: Record<(typeof PAYMENT_TYPES)[number], string> = {
   deposit: "Deposit",
   materials_payment: "Materials payment",
   stage_payment: "Stage payment",
@@ -45,10 +42,7 @@ export const PAYMENT_TRIGGERS = [
   "custom",
 ] as const;
 
-export const PAYMENT_TRIGGER_LABELS: Record
-  (typeof PAYMENT_TRIGGERS)[number],
-  string
-> = {
+export const PAYMENT_TRIGGER_LABELS: Record<(typeof PAYMENT_TRIGGERS)[number], string> = {
   before_work_begins: "Before work begins",
   before_materials_ordered: "Before materials are ordered",
   after_stage_completed: "After a work stage is completed",
