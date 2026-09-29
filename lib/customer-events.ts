@@ -1,6 +1,8 @@
 import { formatCurrency, formatDate } from "@/lib/format";
 import { formatStatusLabel } from "@/lib/validation/follow-up";
-import type { FollowUpStatus } from "@/types/database";
+import { PAYMENT_TYPE_LABELS } from "@/lib/validation/customer";
+import { describePaymentTrigger } from "@/lib/payment-context";
+import type { FollowUpStatus, PaymentTrigger, PaymentType } from "@/types/database";
 
 /**
  * Pure builders for the entries that show up in a customer's payment
@@ -18,12 +20,26 @@ export interface CustomerEventContent {
 
 export function customerAddedEvent(
   amountOwed: number,
-  job: string | null
+  job: string | null,
+  paymentType: PaymentType,
+  paymentTrigger: PaymentTrigger | null,
+  paymentTriggerNote: string | null
 ): CustomerEventContent {
   const jobClause = job ? ` for ${job}` : "";
+  const typeLabel = PAYMENT_TYPE_LABELS[paymentType];
+  const trigger = describePaymentTrigger(paymentTrigger, paymentTriggerNote);
+  // "custom" gets its own "Trigger:" phrasing since the note is often
+  // already a full clause in the contractor's own words (e.g. "After tile
+  // installation is complete") rather than something that reads naturally
+  // after "Required ...".
+  const triggerSentence = trigger
+    ? paymentTrigger === "custom"
+      ? ` Trigger: ${trigger}.`
+      : ` Required ${trigger}.`
+    : "";
   return {
-    headline: "Customer added",
-    detail: `Added with an amount owed of ${formatCurrency(amountOwed)}${jobClause}.`,
+    headline: "Payment created",
+    detail: `${typeLabel} of ${formatCurrency(amountOwed)} added${jobClause}.${triggerSentence}`,
   };
 }
 
