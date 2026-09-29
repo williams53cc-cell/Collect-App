@@ -90,6 +90,41 @@ export interface Database {
           }
         ];
       };
+      customer_events: {
+        Row: {
+          id: string;
+          user_id: string;
+          customer_id: string;
+          headline: string;
+          detail: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string;
+          customer_id: string;
+          headline: string;
+          detail: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          customer_id?: string;
+          headline?: string;
+          detail?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "customer_events_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       digest_sends: {
         Row: {
           user_id: string;
