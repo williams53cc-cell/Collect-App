@@ -14,6 +14,8 @@ import {
 } from "@/lib/message-templates";
 import { buildMailtoLink, buildSmsLink, isIOSDevice } from "@/lib/contact-links";
 import { buildPaypalLink } from "@/lib/paypal";
+import { buildPaymentContextLine } from "@/lib/payment-context";
+import type { PaymentTrigger, PaymentType } from "@/types/database";
 
 // Follow-ups always have a due date (enforced by the `due_date` NOT NULL
 // constraint and required form/schema validation), so this only ever
@@ -43,6 +45,14 @@ interface DraftMessageDialogProps {
    * when they haven't set one up yet. When present, every drafted message
    * includes a payment link pre-filled with this customer's balance. */
   paypalUsername: string | null;
+  /** This customer's payment type/trigger fields (set on the Add/Edit
+   * Customer form). Combined via buildPaymentContextLine() into a single
+   * line — e.g. "Deposit — required before work begins." — that's
+   * appended to every drafted message when there's something worth
+   * saying. */
+  paymentType: PaymentType | null;
+  paymentTrigger: PaymentTrigger | null;
+  paymentTriggerNote: string | null;
 }
 
 export function DraftMessageDialog({
@@ -54,6 +64,9 @@ export function DraftMessageDialog({
   dueDate,
   promisedDate,
   paypalUsername,
+  paymentType,
+  paymentTrigger,
+  paymentTriggerNote,
 }: DraftMessageDialogProps) {
   const dialogRef = useRef<DialogHandle>(null);
   const [tone, setTone] = useState<MessageTone>("friendly");
@@ -71,6 +84,11 @@ export function DraftMessageDialog({
   const paymentLink = paypalUsername
     ? buildPaypalLink(paypalUsername, amountOwed)
     : null;
+  const paymentContext = buildPaymentContextLine(
+    paymentType,
+    paymentTrigger,
+    paymentTriggerNote
+  );
   const messageContext = {
     name: customerName,
     job: customerJob?.trim() || null,
@@ -81,6 +99,7 @@ export function DraftMessageDialog({
     promisedDateLabel,
     promiseBroken,
     paymentLink,
+    paymentContext,
   };
 
   function applyTone(nextTone: MessageTone) {
@@ -103,104 +122,3 @@ export function DraftMessageDialog({
   async function handleCopy() {
     try {
       await navigator.clipboard.writeText(message);
-      setCopyState("copied");
-      setTimeout(() => setCopyState("idle"), 2000);
-    } catch {
-      setCopyState("error");
-    }
-  }
-
-  return (
-    <>
-      <button
-        type="button"
-        onClick={handleOpen}
-        className="text-xs font-medium text-gray-600 hover:text-gray-900 hover:underline"
-      >
-        Message
-      </button>
-      <Dialog
-        ref={dialogRef}
-        title="Draft a message"
-        description={
-          promisedDateLabel
-            ? promiseBroken
-              ? `For ${customerName} — broke promise (${promisedDateLabel})`
-              : `For ${customerName} — promised ${promisedDateLabel}`
-            : `For ${customerName} — ${describeDueStatus(overdueDays)}`
-        }
-      >
-        <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-2">
-            {MESSAGE_TONES.map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => applyTone(t)}
-                className={`rounded-md border px-2 py-2 text-left text-xs transition-colors ${
-                  tone === t
-                    ? "border-blue-600 bg-blue-600 text-white"
-                    : "border-gray-300 text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                <span className="block font-medium">
-                  {MESSAGE_TONE_META[t].label}
-                </span>
-                <span
-                  className={tone === t ? "text-gray-300" : "text-gray-400"}
-                >
-                  {MESSAGE_TONE_META[t].description}
-                </span>
-              </button>
-            ))}
-          </div>
-
-          <Textarea
-            value={message}
-            onChange={(event) => setMessage(event.target.value)}
-            rows={7}
-            className="text-sm"
-          />
-
-          {!phone && !email && (
-            <p className="text-xs text-gray-400">
-              No phone or email on file for this customer — Text and Email
-              will open with no recipient pre-filled.
-            </p>
-          )}
-
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <a href={buildSmsLink(phone, message, isIOS)} className={buttonClassName({ variant: "secondary", className: "flex-1" })}>
-              Text
-            </a>
-            <a href={buildMailtoLink(email, subject, message)} className={buttonClassName({ variant: "secondary", className: "flex-1" })}>
-              Email
-            </a>
-            <Button
-              type="button"
-              variant="secondary"
-              className="flex-1"
-              onClick={handleCopy}
-            >
-              {copyState === "copied"
-                ? "Copied!"
-                : copyState === "error"
-                  ? "Couldn't copy"
-                  : "Copy"}
-            </Button>
-          </div>
-
-          <div className="flex justify-end">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => dialogRef.current?.close()}
-            >
-              Close
-            </Button>
-          </div>
-        </div>
-      </Dialog>
-    </>
-  );
-}
