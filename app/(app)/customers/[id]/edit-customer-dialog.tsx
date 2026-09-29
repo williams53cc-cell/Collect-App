@@ -1,15 +1,21 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { Alert } from "@/components/ui/alert";
 import { Dialog, type DialogHandle } from "@/components/ui/dialog";
-import { CUSTOMER_STATUSES } from "@/lib/validation/customer";
+import {
+  CUSTOMER_STATUSES,
+  PAYMENT_TRIGGER_LABELS,
+  PAYMENT_TRIGGERS,
+  PAYMENT_TYPE_LABELS,
+  PAYMENT_TYPES,
+} from "@/lib/validation/customer";
 import { initialFormState } from "@/lib/form-state";
 import { updateCustomer } from "../actions";
-import type { CustomerStatus } from "@/types/database";
+import type { CustomerStatus, PaymentTrigger, PaymentType } from "@/types/database";
 
 interface EditCustomerDialogProps {
   customerId: string;
@@ -20,6 +26,9 @@ interface EditCustomerDialogProps {
   amountOwed: number;
   status: CustomerStatus;
   notes: string | null;
+  paymentType: PaymentType | null;
+  paymentTrigger: PaymentTrigger | null;
+  paymentTriggerNote: string | null;
 }
 
 /** Was missing entirely before — the customer detail page could only
@@ -37,10 +46,18 @@ export function EditCustomerDialog({
   amountOwed,
   status,
   notes,
+  paymentType,
+  paymentTrigger,
+  paymentTriggerNote,
 }: EditCustomerDialogProps) {
   const dialogRef = useRef<DialogHandle>(null);
   const boundAction = updateCustomer.bind(null, customerId);
   const [state, formAction] = useActionState(boundAction, initialFormState);
+  // Drives whether the "Trigger details" field shows up — starts from
+  // whatever this customer already has saved, same as any other field's
+  // defaultValue, but needs to be real state since it also has to react to
+  // the contractor changing the dropdown.
+  const [selectedTrigger, setSelectedTrigger] = useState(paymentTrigger ?? "");
 
   useEffect(() => {
     if (state.status === "success") {
@@ -148,6 +165,65 @@ export function EditCustomerDialog({
               ))}
             </Select>
           </Field>
+
+          <div className="grid grid-cols-2 gap-4">
+            <Field
+              label="Payment type"
+              htmlFor="edit_payment_type"
+              required
+              error={errors.payment_type?.[0]}
+            >
+              <Select
+                id="edit_payment_type"
+                name="payment_type"
+                defaultValue={paymentType ?? "other"}
+                invalid={!!errors.payment_type}
+              >
+                {PAYMENT_TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {PAYMENT_TYPE_LABELS[type]}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field
+              label="Payment trigger"
+              htmlFor="edit_payment_trigger"
+              error={errors.payment_trigger?.[0]}
+              hint="Optional — what needs to happen before this is due?"
+            >
+              <Select
+                id="edit_payment_trigger"
+                name="payment_trigger"
+                value={selectedTrigger}
+                onChange={(event) => setSelectedTrigger(event.target.value)}
+                invalid={!!errors.payment_trigger}
+              >
+                <option value="">— Not set —</option>
+                {PAYMENT_TRIGGERS.map((trigger) => (
+                  <option key={trigger} value={trigger}>
+                    {PAYMENT_TRIGGER_LABELS[trigger]}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          </div>
+
+          {selectedTrigger === "custom" && (
+            <Field
+              label="Trigger details"
+              htmlFor="edit_payment_trigger_note"
+              error={errors.payment_trigger_note?.[0]}
+              hint='E.g. "After tile installation is complete."'
+            >
+              <Input
+                id="edit_payment_trigger_note"
+                name="payment_trigger_note"
+                defaultValue={paymentTriggerNote ?? ""}
+                invalid={!!errors.payment_trigger_note}
+              />
+            </Field>
+          )}
 
           <Field label="Notes" htmlFor="edit_notes" error={errors.notes?.[0]}>
             <Textarea
