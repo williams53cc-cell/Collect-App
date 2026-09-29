@@ -9,17 +9,54 @@ import {
 } from "./customer-events";
 
 describe("customerAddedEvent", () => {
-  it("includes the amount and job when a job is set", () => {
-    const event = customerAddedEvent(850, "Bathroom Renovation");
-    expect(event.headline).toBe("Customer added");
+  it("includes the payment type, amount, and job", () => {
+    const event = customerAddedEvent(
+      850,
+      "Bathroom Renovation",
+      "final_balance",
+      null,
+      null
+    );
+    expect(event.headline).toBe("Payment created");
     expect(event.detail).toBe(
-      "Added with an amount owed of $850.00 for Bathroom Renovation."
+      "Final balance of $850.00 added for Bathroom Renovation."
     );
   });
 
   it("drops the job clause entirely when there's no job on file", () => {
-    const event = customerAddedEvent(850, null);
-    expect(event.detail).toBe("Added with an amount owed of $850.00.");
+    const event = customerAddedEvent(850, null, "final_balance", null, null);
+    expect(event.detail).toBe("Final balance of $850.00 added.");
+  });
+
+  it("appends a 'Required ...' sentence for a fixed-list trigger", () => {
+    const event = customerAddedEvent(
+      1500,
+      "Bathroom Renovation",
+      "deposit",
+      "before_work_begins",
+      null
+    );
+    expect(event.detail).toBe(
+      "Deposit of $1,500.00 added for Bathroom Renovation. Required before work begins."
+    );
+  });
+
+  it("appends a 'Trigger: ...' sentence using the custom note", () => {
+    const event = customerAddedEvent(
+      1000,
+      "Bathroom Renovation",
+      "stage_payment",
+      "custom",
+      "After tile installation is complete"
+    );
+    expect(event.detail).toBe(
+      "Stage payment of $1,000.00 added for Bathroom Renovation. Trigger: After tile installation is complete."
+    );
+  });
+
+  it("adds no trigger sentence at all when there's no trigger set", () => {
+    const event = customerAddedEvent(250, null, "other", null, null);
+    expect(event.detail).toBe("Other of $250.00 added.");
   });
 });
 
