@@ -4,6 +4,7 @@ import { getCustomer } from "@/lib/data/customers";
 import { getFollowUpsForCustomer } from "@/lib/data/follow-ups";
 import { getCustomerEvents } from "@/lib/data/customer-events";
 import { formatCurrency } from "@/lib/format";
+import { buildPaymentContextLine } from "@/lib/payment-context";
 import { EmptyState } from "@/components/ui/empty-state";
 import { NewFollowUpForm } from "./new-follow-up-form";
 import { FollowUpRow } from "./follow-up-row";
@@ -31,6 +32,11 @@ export default async function CustomerDetailPage({
   } = await supabase.auth.getUser();
   const paypalUsername =
     (user?.user_metadata?.paypal_username as string | undefined) ?? null;
+  const paymentContextLine = buildPaymentContextLine(
+    customer.payment_type,
+    customer.payment_trigger,
+    customer.payment_trigger_note
+  );
 
   return (
     <div className="space-y-6">
@@ -61,6 +67,9 @@ export default async function CustomerDetailPage({
               amountOwed={Number(customer.amount_owed)}
               status={customer.status}
               notes={customer.notes}
+              paymentType={customer.payment_type}
+              paymentTrigger={customer.payment_trigger}
+              paymentTriggerNote={customer.payment_trigger_note}
             />
             <DeleteCustomerButton
               customerId={customer.id}
@@ -83,6 +92,12 @@ export default async function CustomerDetailPage({
               status={customer.status}
             />
           </div>
+          {paymentContextLine && (
+            <div className="sm:col-span-3">
+              <p className="text-xs uppercase text-gray-400">Payment</p>
+              <p className="text-sm text-gray-700">{paymentContextLine}</p>
+            </div>
+          )}
           {customer.notes && (
             <div className="sm:col-span-3">
               <p className="text-xs uppercase text-gray-400">Notes</p>
