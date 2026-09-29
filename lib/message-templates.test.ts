@@ -312,3 +312,54 @@ describe("renderMessage — payment link", () => {
     }
   });
 });
+
+describe("renderMessage — payment context", () => {
+  const base = {
+    name: "Jordan Smith",
+    job: "Kitchen remodel",
+    amount: "$1,200.00",
+    daysOverdue: 1,
+    hasDueDate: true,
+    promisedDateLabel: null,
+  };
+
+  it("appends the payment context line before the sign-off when set", () => {
+    const withContext = {
+      ...base,
+      paymentContext: "Deposit — required before work begins.",
+    };
+    for (const tone of MESSAGE_TONES) {
+      const message = renderMessage(tone, withContext);
+      expect(message).toContain("Deposit — required before work begins.");
+      expect(message.indexOf("Deposit — required")).toBeLessThan(
+        message.indexOf("Thanks,")
+      );
+    }
+  });
+
+  it("places the payment context line before the payment link", () => {
+    const withBoth = {
+      ...base,
+      paymentContext: "Deposit — required before work begins.",
+      paymentLink: "https://paypal.me/jordansmith/1200.00",
+    };
+    const message = renderMessage("friendly", withBoth);
+    expect(message.indexOf("Deposit — required")).toBeLessThan(
+      message.indexOf("You can pay here:")
+    );
+  });
+
+  it("omits the payment context line entirely when not provided", () => {
+    for (const tone of MESSAGE_TONES) {
+      expect(renderMessage(tone, base)).not.toContain("Required");
+      expect(renderMessage(tone, base)).not.toContain("Deposit");
+    }
+  });
+
+  it("omits the payment context line when explicitly null", () => {
+    const withNullContext = { ...base, paymentContext: null };
+    for (const tone of MESSAGE_TONES) {
+      expect(renderMessage(tone, withNullContext)).not.toContain("Deposit");
+    }
+  });
+});
