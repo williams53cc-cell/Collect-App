@@ -120,6 +120,9 @@ export default async function DashboardPage() {
                             dueDate={followUp.due_date}
                             promisedDate={followUp.promised_date}
                             paypalUsername={paypalUsername}
+                            paymentType={followUp.customerPaymentType}
+                            paymentTrigger={followUp.customerPaymentTrigger}
+                            paymentTriggerNote={followUp.customerPaymentTriggerNote}
                           />
                         </td>
                       </tr>
