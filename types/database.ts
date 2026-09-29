@@ -1,5 +1,18 @@
 export type CustomerStatus = "active" | "overdue" | "paid" | "closed";
 export type FollowUpStatus = "pending" | "needs_call" | "done" | "skipped";
+export type PaymentType =
+  | "deposit"
+  | "materials_payment"
+  | "stage_payment"
+  | "final_balance"
+  | "other";
+export type PaymentTrigger =
+  | "before_work_begins"
+  | "before_materials_ordered"
+  | "after_stage_completed"
+  | "at_job_completion"
+  | "on_specific_date"
+  | "custom";
 
 export interface Database {
   public: {
@@ -17,6 +30,9 @@ export interface Database {
           status: CustomerStatus;
           notes: string | null;
           created_at: string;
+          payment_type: PaymentType | null;
+          payment_trigger: PaymentTrigger | null;
+          payment_trigger_note: string | null;
         };
         Insert: {
           id?: string;
@@ -30,6 +46,9 @@ export interface Database {
           status?: CustomerStatus;
           notes?: string | null;
           created_at?: string;
+          payment_type?: PaymentType | null;
+          payment_trigger?: PaymentTrigger | null;
+          payment_trigger_note?: string | null;
         };
         Update: {
           id?: string;
@@ -43,6 +62,9 @@ export interface Database {
           status?: CustomerStatus;
           notes?: string | null;
           created_at?: string;
+          payment_type?: PaymentType | null;
+          payment_trigger?: PaymentTrigger | null;
+          payment_trigger_note?: string | null;
         };
         Relationships: [];
       };
