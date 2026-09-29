@@ -115,8 +115,16 @@ export function parseCustomerForm(formData: FormData) {
     amount_owed: formData.get("amount_owed") || 0,
     status: formData.get("status"),
     payment_type: formData.get("payment_type") || "other",
-    payment_trigger: formData.get("payment_trigger"),
-    payment_trigger_note: formData.get("payment_trigger_note"),
+    // payment_trigger_note only exists in the DOM when the contractor has
+    // picked "Custom" as the trigger (see the conditional <Field> in
+    // new-customer-form.tsx / edit-customer-dialog.tsx). Whenever it's
+    // hidden, formData.get() returns null rather than an empty string —
+    // and null isn't a value the schema's `.optional()` accepts (that only
+    // covers a missing/undefined key), so every submission with a trigger
+    // other than "custom" failed validation. Same defensive fallback on
+    // payment_trigger in case that field is ever made conditional too.
+    payment_trigger: formData.get("payment_trigger") || "",
+    payment_trigger_note: formData.get("payment_trigger_note") || "",
     notes: formData.get("notes"),
   });
 }
