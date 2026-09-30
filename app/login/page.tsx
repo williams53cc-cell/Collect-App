@@ -4,9 +4,10 @@ import { AuthTabs } from "@/components/auth-tabs";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; message?: string }>;
+  searchParams: Promise<{ error?: string; message?: string; mode?: string }>;
 }) {
   const params = await searchParams;
+  const initialMode = params.mode === "signup" ? "signup" : "signin";
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
@@ -27,7 +28,7 @@ export default async function LoginPage({
           </p>
         )}
 
-        <AuthTabs login={login} signup={signup} />
+        <AuthTabs login={login} signup={signup} initialMode={initialMode} />
       </div>
     </div>
   );
