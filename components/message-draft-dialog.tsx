@@ -56,6 +56,10 @@ interface DraftMessageDialogProps {
   paymentType: PaymentType | null;
   paymentTrigger: PaymentTrigger | null;
   paymentTriggerNote: string | null;
+  /** The contractor's own name (first name, falling back to business
+   * name) — appended after "Thanks," in every drafted message. Null when
+   * neither is on file yet. */
+  senderName: string | null;
 }
 
 export function DraftMessageDialog({
@@ -72,6 +76,7 @@ export function DraftMessageDialog({
   paymentType,
   paymentTrigger,
   paymentTriggerNote,
+  senderName,
 }: DraftMessageDialogProps) {
   const dialogRef = useRef<DialogHandle>(null);
   const [tone, setTone] = useState<MessageTone>("friendly");
@@ -105,6 +110,7 @@ export function DraftMessageDialog({
     promiseBroken,
     paymentLink: resolvedPaymentLink,
     paymentContext,
+    senderName,
   };
 
   function applyTone(nextTone: MessageTone) {
