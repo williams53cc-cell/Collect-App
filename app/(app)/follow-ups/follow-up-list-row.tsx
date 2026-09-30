@@ -19,11 +19,13 @@ export function FollowUpListRow({
   paymentMethod,
   paymentLink,
   includePaymentLinkDefault,
+  senderName,
 }: {
   followUp: FollowUpWithCustomer;
   paymentMethod: PaymentMethod | null;
   paymentLink: string | null;
   includePaymentLinkDefault: boolean;
+  senderName: string | null;
 }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -105,6 +107,7 @@ export function FollowUpListRow({
               paymentType={followUp.customerPaymentType}
               paymentTrigger={followUp.customerPaymentTrigger}
               paymentTriggerNote={followUp.customerPaymentTriggerNote}
+              senderName={senderName}
             />
           )}
           {followUp.status === "needs_call" && (
