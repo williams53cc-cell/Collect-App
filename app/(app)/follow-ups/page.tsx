@@ -25,6 +25,8 @@ export default async function FollowUpsPage({
   const filter = parseFilter(params.filter);
   const followUps = await getFollowUps(filter);
   const businessProfile = await getBusinessProfile();
+  const senderName =
+    businessProfile?.first_name || businessProfile?.business_name || null;
 
   return (
     <div className="space-y-6">
@@ -65,6 +67,7 @@ export default async function FollowUpsPage({
                     includePaymentLinkDefault={
                       businessProfile?.include_payment_link_default ?? true
                     }
+                    senderName={senderName}
                   />
                 ))}
               </tbody>
