@@ -13,6 +13,18 @@ export type PaymentTrigger =
   | "at_job_completion"
   | "on_specific_date"
   | "custom";
+export type BusinessType =
+  | "renovation_contractor"
+  | "general_contractor"
+  | "electrician"
+  | "plumber"
+  | "hvac_contractor"
+  | "landscaper"
+  | "painter"
+  | "roofer"
+  | "tile_installer"
+  | "other";
+export type PaymentMethod = "paypal" | "venmo" | "zelle" | "check" | "other";
 
 export interface Database {
   public: {
@@ -162,6 +174,48 @@ export interface Database {
           user_id?: string;
           digest_date?: string;
           sent_at?: string;
+        };
+        Relationships: [];
+      };
+      business_profiles: {
+        Row: {
+          user_id: string;
+          business_name: string;
+          business_type: BusinessType;
+          currency: string;
+          country: string | null;
+          timezone: string | null;
+          payment_method: PaymentMethod | null;
+          payment_link: string | null;
+          payment_instructions: string | null;
+          include_payment_link_default: boolean;
+          created_at: string;
+        };
+        Insert: {
+          user_id?: string;
+          business_name?: string;
+          business_type?: BusinessType;
+          currency?: string;
+          country?: string | null;
+          timezone?: string | null;
+          payment_method?: PaymentMethod | null;
+          payment_link?: string | null;
+          payment_instructions?: string | null;
+          include_payment_link_default?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          business_name?: string;
+          business_type?: BusinessType;
+          currency?: string;
+          country?: string | null;
+          timezone?: string | null;
+          payment_method?: PaymentMethod | null;
+          payment_link?: string | null;
+          payment_instructions?: string | null;
+          include_payment_link_default?: boolean;
+          created_at?: string;
         };
         Relationships: [];
       };
