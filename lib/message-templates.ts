@@ -61,6 +61,12 @@ export interface MessageContext {
    * money is for rather than how to pay it. Null/undefined when there's
    * nothing extra worth saying (see buildPaymentContextLine). */
   paymentContext?: string | null;
+  /** The contractor's own name, appended after "Thanks," so the message
+   * doesn't end mid-sentence. Callers pass the contractor's first name,
+   * falling back to their business name, falling back to null when
+   * neither is on file yet (onboarding not completed) — in which case the
+   * sign-off stays a bare "Thanks," exactly as before. */
+  senderName?: string | null;
 }
 
 /** ", due in 3 days" / ", due in 1 day" / ", due today" / ", now 8 days
@@ -202,14 +208,14 @@ const BUILDERS: Record<MessageTone, (ctx: MessageContext) => string> = {
   formal: buildFormal,
 };
 
-/** Every message ends with a bare "Thanks," on its own line so the sender
- * can type their own name after it — there's no sender-name field in the
- * app to fill this in automatically. When set, the payment context line
- * (what this payment is for) comes right after the main body, and the
- * payment link (how to pay it) comes after that — so a message reads
- * "here's the balance ... here's what it's for ... here's how to pay ...
- * thanks" in that order. Either or both can be absent; only the pieces
- * that apply show up. */
+/** Every message ends with "Thanks," followed by the contractor's own name
+ * when one is on file (senderName) — otherwise a bare "Thanks," on its own
+ * line, same as before, so the sender can type a name in by hand. When
+ * set, the payment context line (what this payment is for) comes right
+ * after the main body, and the payment link (how to pay it) comes after
+ * that — so a message reads "here's the balance ... here's what it's for
+ * ... here's how to pay ... thanks, name" in that order. Any of these can
+ * be absent; only the pieces that apply show up. */
 export function renderMessage(tone: MessageTone, ctx: MessageContext): string {
   const body = BUILDERS[tone](ctx);
   const paymentContextLine = ctx.paymentContext
@@ -218,5 +224,6 @@ export function renderMessage(tone: MessageTone, ctx: MessageContext): string {
   const paymentLine = ctx.paymentLink
     ? `\n\nYou can pay here: ${ctx.paymentLink}`
     : "";
-  return `${body}${paymentContextLine}${paymentLine}\n\nThanks,`;
+  const signOff = ctx.senderName ? `\n\nThanks,\n${ctx.senderName}` : "\n\nThanks,";
+  return `${body}${paymentContextLine}${paymentLine}${signOff}`;
 }
