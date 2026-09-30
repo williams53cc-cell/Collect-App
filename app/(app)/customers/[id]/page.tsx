@@ -27,6 +27,8 @@ export default async function CustomerDetailPage({
   const events = await getCustomerEvents(id);
 
   const businessProfile = await getBusinessProfile();
+  const senderName =
+    businessProfile?.first_name || businessProfile?.business_name || null;
   const paymentContextLine = buildPaymentContextLine(
     customer.payment_type,
     customer.payment_trigger,
@@ -136,6 +138,7 @@ export default async function CustomerDetailPage({
                         includePaymentLinkDefault={
                           businessProfile?.include_payment_link_default ?? true
                         }
+                        senderName={senderName}
                       />
                     ))}
                   </tbody>
