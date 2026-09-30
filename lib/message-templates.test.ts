@@ -134,6 +134,41 @@ describe("renderMessage — wording", () => {
   });
 });
 
+describe("renderMessage — sender sign-off", () => {
+  const base = {
+    name: "Jordan Smith",
+    job: "Kitchen remodel",
+    amount: "$1,200.00",
+    daysOverdue: 8,
+    hasDueDate: true,
+    promisedDateLabel: null,
+  };
+
+  it("appends the sender's name after 'Thanks,' when one is set", () => {
+    for (const tone of MESSAGE_TONES) {
+      expect(
+        renderMessage(tone, { ...base, senderName: "Alex Brown" }).endsWith(
+          "\n\nThanks,\nAlex Brown"
+        )
+      ).toBe(true);
+    }
+  });
+
+  it("falls back to a bare 'Thanks,' when senderName is null", () => {
+    expect(
+      renderMessage("friendly", { ...base, senderName: null }).endsWith(
+        "\n\nThanks,"
+      )
+    ).toBe(true);
+  });
+
+  it("falls back to a bare 'Thanks,' when senderName is omitted entirely", () => {
+    expect(renderMessage("friendly", base).endsWith("\n\nThanks,")).toBe(
+      true
+    );
+  });
+});
+
 describe("renderMessage — promise-aware wording", () => {
   const base = {
     name: "Jordan Smith",
