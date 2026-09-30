@@ -12,6 +12,8 @@ export default async function DashboardPage() {
     await getDashboardData();
 
   const businessProfile = await getBusinessProfile();
+  const senderName =
+    businessProfile?.first_name || businessProfile?.business_name || null;
 
   return (
     <div className="space-y-8">
@@ -122,6 +124,7 @@ export default async function DashboardPage() {
                             paymentType={followUp.customerPaymentType}
                             paymentTrigger={followUp.customerPaymentTrigger}
                             paymentTriggerNote={followUp.customerPaymentTriggerNote}
+                            senderName={senderName}
                           />
                         </td>
                       </tr>
