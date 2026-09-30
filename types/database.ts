@@ -180,6 +180,8 @@ export interface Database {
       business_profiles: {
         Row: {
           user_id: string;
+          first_name: string | null;
+          last_name: string | null;
           business_name: string;
           business_type: BusinessType;
           currency: string;
@@ -189,10 +191,13 @@ export interface Database {
           payment_link: string | null;
           payment_instructions: string | null;
           include_payment_link_default: boolean;
+          onboarding_completed: boolean;
           created_at: string;
         };
         Insert: {
           user_id?: string;
+          first_name?: string | null;
+          last_name?: string | null;
           business_name?: string;
           business_type?: BusinessType;
           currency?: string;
@@ -202,10 +207,13 @@ export interface Database {
           payment_link?: string | null;
           payment_instructions?: string | null;
           include_payment_link_default?: boolean;
+          onboarding_completed?: boolean;
           created_at?: string;
         };
         Update: {
           user_id?: string;
+          first_name?: string | null;
+          last_name?: string | null;
           business_name?: string;
           business_type?: BusinessType;
           currency?: string;
@@ -215,6 +223,7 @@ export interface Database {
           payment_link?: string | null;
           payment_instructions?: string | null;
           include_payment_link_default?: boolean;
+          onboarding_completed?: boolean;
           created_at?: string;
         };
         Relationships: [];
