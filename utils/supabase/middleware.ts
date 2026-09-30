@@ -1,6 +1,21 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+/** Routes a signed-out visitor is allowed to see without being bounced to
+ * /login: the public marketing page at the root ("/"), plus the /login and
+ * /auth flows themselves (the sign-in form and the auth callback route).
+ * Every other route requires a session. Exported and tested on its own
+ * (middleware.test.ts) since the real middleware below needs a mocked
+ * Supabase client and NextRequest to exercise directly — this is the part
+ * most likely to silently regress when a new public page is added. */
+export function isPublicRoute(pathname: string): boolean {
+  return (
+    pathname === "/" ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/auth")
+  );
+}
+
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({
     request: {
@@ -35,11 +50,7 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isAuthRoute =
-    request.nextUrl.pathname.startsWith("/login") ||
-    request.nextUrl.pathname.startsWith("/auth");
-
-  if (!user && !isAuthRoute) {
+  if (!user && !isPublicRoute(request.nextUrl.pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
