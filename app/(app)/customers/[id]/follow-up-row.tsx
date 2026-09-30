@@ -9,7 +9,12 @@ import { CallScriptDialog } from "@/components/call-script-dialog";
 import { PromisedDateControl } from "@/components/promised-date-control";
 import { formatDate, isOverdue } from "@/lib/format";
 import { FOLLOW_UP_STATUSES, formatStatusLabel } from "@/lib/validation/follow-up";
-import type { FollowUpStatus, PaymentTrigger, PaymentType } from "@/types/database";
+import type {
+  FollowUpStatus,
+  PaymentMethod,
+  PaymentTrigger,
+  PaymentType,
+} from "@/types/database";
 import { deleteFollowUp, updateFollowUpStatus } from "../../follow-ups/actions";
 
 interface FollowUp {
@@ -36,11 +41,15 @@ interface CustomerSummary {
 export function FollowUpRow({
   followUp,
   customer,
-  paypalUsername,
+  paymentMethod,
+  paymentLink,
+  includePaymentLinkDefault,
 }: {
   followUp: FollowUp;
   customer: CustomerSummary;
-  paypalUsername: string | null;
+  paymentMethod: PaymentMethod | null;
+  paymentLink: string | null;
+  includePaymentLinkDefault: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -109,7 +118,9 @@ export function FollowUpRow({
               phone={customer.phone}
               dueDate={followUp.due_date}
               promisedDate={followUp.promised_date}
-              paypalUsername={paypalUsername}
+              paymentMethod={paymentMethod}
+              paymentLink={paymentLink}
+              includePaymentLinkDefault={includePaymentLinkDefault}
               paymentType={customer.payment_type}
               paymentTrigger={customer.payment_trigger}
               paymentTriggerNote={customer.payment_trigger_note}
