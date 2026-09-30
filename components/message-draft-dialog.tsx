@@ -13,9 +13,9 @@ import {
   type MessageTone,
 } from "@/lib/message-templates";
 import { buildMailtoLink, buildSmsLink, isIOSDevice } from "@/lib/contact-links";
-import { buildPaypalLink } from "@/lib/paypal";
+import { buildBusinessPaymentLink } from "@/lib/business-payment-link";
 import { buildPaymentContextLine } from "@/lib/payment-context";
-import type { PaymentTrigger, PaymentType } from "@/types/database";
+import type { PaymentMethod, PaymentTrigger, PaymentType } from "@/types/database";
 
 // Follow-ups always have a due date (enforced by the `due_date` NOT NULL
 // constraint and required form/schema validation), so this only ever
@@ -41,10 +41,13 @@ interface DraftMessageDialogProps {
    * logged. Once set, it's a stronger signal than our own due_date, so it
    * drives both the day-count/tone and the message wording instead. */
   promisedDate: string | null;
-  /** The contractor's own PayPal.me username, saved in Settings — null
-   * when they haven't set one up yet. When present, every drafted message
-   * includes a payment link pre-filled with this customer's balance. */
-  paypalUsername: string | null;
+  /** The contractor's saved payment method and link (Settings → Getting
+   * paid) — null when they haven't set one up yet. */
+  paymentMethod: PaymentMethod | null;
+  paymentLink: string | null;
+  /** Whether the contractor wants the payment link included by default
+   * when a message is drafted. */
+  includePaymentLinkDefault: boolean;
   /** This customer's payment type/trigger fields (set on the Add/Edit
    * Customer form). Combined via buildPaymentContextLine() into a single
    * line — e.g. "Deposit — required before work begins." — that's
@@ -63,7 +66,9 @@ export function DraftMessageDialog({
   phone,
   dueDate,
   promisedDate,
-  paypalUsername,
+  paymentMethod,
+  paymentLink,
+  includePaymentLinkDefault,
   paymentType,
   paymentTrigger,
   paymentTriggerNote,
@@ -81,8 +86,8 @@ export function DraftMessageDialog({
   const overdueDays = signedDaysFromToday(effectiveDate);
   const promisedDateLabel = promisedDate ? formatDate(promisedDate) : null;
   const promiseBroken = promisedDate ? promisedDate < todayISODate() : false;
-  const paymentLink = paypalUsername
-    ? buildPaypalLink(paypalUsername, amountOwed)
+  const resolvedPaymentLink = includePaymentLinkDefault
+    ? buildBusinessPaymentLink(paymentMethod, paymentLink, amountOwed)
     : null;
   const paymentContext = buildPaymentContextLine(
     paymentType,
@@ -98,7 +103,7 @@ export function DraftMessageDialog({
     dueDateLabel: formatDate(dueDate),
     promisedDateLabel,
     promiseBroken,
-    paymentLink,
+    paymentLink: resolvedPaymentLink,
     paymentContext,
   };
 
