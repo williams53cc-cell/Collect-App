@@ -12,7 +12,7 @@ import { CustomerStatusSelect } from "./customer-status-select";
 import { DeleteCustomerButton } from "./delete-customer-button";
 import { EditCustomerDialog } from "./edit-customer-dialog";
 import { CustomerTimeline } from "@/components/customer-timeline";
-import { createClient } from "@/utils/supabase/server";
+import { getBusinessProfile } from "@/lib/data/business-profile";
 
 export default async function CustomerDetailPage({
   params,
@@ -26,12 +26,7 @@ export default async function CustomerDetailPage({
   const followUps = await getFollowUpsForCustomer(id);
   const events = await getCustomerEvents(id);
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const paypalUsername =
-    (user?.user_metadata?.paypal_username as string | undefined) ?? null;
+  const businessProfile = await getBusinessProfile();
   const paymentContextLine = buildPaymentContextLine(
     customer.payment_type,
     customer.payment_trigger,
@@ -136,7 +131,11 @@ export default async function CustomerDetailPage({
                         key={followUp.id}
                         followUp={followUp}
                         customer={customer}
-                        paypalUsername={paypalUsername}
+                        paymentMethod={businessProfile?.payment_method ?? null}
+                        paymentLink={businessProfile?.payment_link ?? null}
+                        includePaymentLinkDefault={
+                          businessProfile?.include_payment_link_default ?? true
+                        }
                       />
                     ))}
                   </tbody>
