@@ -6,7 +6,7 @@ import {
 import { EmptyState } from "@/components/ui/empty-state";
 import { FollowUpFilters } from "./follow-up-filters";
 import { FollowUpListRow } from "./follow-up-list-row";
-import { createClient } from "@/utils/supabase/server";
+import { getBusinessProfile } from "@/lib/data/business-profile";
 
 const FILTER_KEYS = FOLLOW_UP_FILTERS.map((filter) => filter.key);
 
@@ -24,13 +24,7 @@ export default async function FollowUpsPage({
   const params = await searchParams;
   const filter = parseFilter(params.filter);
   const followUps = await getFollowUps(filter);
-
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const paypalUsername =
-    (user?.user_metadata?.paypal_username as string | undefined) ?? null;
+  const businessProfile = await getBusinessProfile();
 
   return (
     <div className="space-y-6">
@@ -66,7 +60,11 @@ export default async function FollowUpsPage({
                   <FollowUpListRow
                     key={followUp.id}
                     followUp={followUp}
-                    paypalUsername={paypalUsername}
+                    paymentMethod={businessProfile?.payment_method ?? null}
+                    paymentLink={businessProfile?.payment_link ?? null}
+                    includePaymentLinkDefault={
+                      businessProfile?.include_payment_link_default ?? true
+                    }
                   />
                 ))}
               </tbody>
