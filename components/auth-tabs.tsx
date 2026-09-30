@@ -14,11 +14,13 @@ type AuthMode = "signin" | "signup";
 export function AuthTabs({
   login,
   signup,
+  initialMode = "signin",
 }: {
   login: (formData: FormData) => Promise<void>;
   signup: (formData: FormData) => Promise<void>;
+  initialMode?: AuthMode;
 }) {
-  const [mode, setMode] = useState<AuthMode>("signin");
+  const [mode, setMode] = useState<AuthMode>(initialMode);
 
   return (
     <>
