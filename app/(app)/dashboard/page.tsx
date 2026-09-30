@@ -5,18 +5,13 @@ import { StatCard } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { DraftMessageDialog } from "@/components/message-draft-dialog";
-import { createClient } from "@/utils/supabase/server";
+import { getBusinessProfile } from "@/lib/data/business-profile";
 
 export default async function DashboardPage() {
   const { customerStats, followUpStats, attentionFollowUps } =
     await getDashboardData();
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const paypalUsername =
-    (user?.user_metadata?.paypal_username as string | undefined) ?? null;
+  const businessProfile = await getBusinessProfile();
 
   return (
     <div className="space-y-8">
@@ -119,7 +114,11 @@ export default async function DashboardPage() {
                             phone={followUp.customerPhone}
                             dueDate={followUp.due_date}
                             promisedDate={followUp.promised_date}
-                            paypalUsername={paypalUsername}
+                            paymentMethod={businessProfile?.payment_method ?? null}
+                            paymentLink={businessProfile?.payment_link ?? null}
+                            includePaymentLinkDefault={
+                              businessProfile?.include_payment_link_default ?? true
+                            }
                             paymentType={followUp.customerPaymentType}
                             paymentTrigger={followUp.customerPaymentTrigger}
                             paymentTriggerNote={followUp.customerPaymentTriggerNote}
