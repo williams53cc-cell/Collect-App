@@ -16,6 +16,33 @@ export function isPublicRoute(pathname: string): boolean {
   );
 }
 
+/** Whether a signed-in-but-not-yet-onboarded visitor should be bounced to
+ * /onboarding instead of the page they asked for. A completed profile
+ * always wins (nothing to gate); otherwise anything already public
+ * (isPublicRoute) or the onboarding flow itself stays reachable — the
+ * flow obviously can't require itself to be finished to load, and someone
+ * mid-wizard still needs to be able to sign out via /login. */
+export function needsOnboardingRedirect(
+  pathname: string,
+  onboardingCompleted: boolean
+): boolean {
+  if (onboardingCompleted) return false;
+  if (isPublicRoute(pathname)) return false;
+  if (pathname.startsWith("/onboarding")) return false;
+  return true;
+}
+
+/** The reverse case: someone who has already finished onboarding
+ * shouldn't be able to re-enter the wizard (e.g. an old bookmark) — send
+ * them to the dashboard instead. Editing business info afterwards is
+ * what Settings is for. */
+export function shouldLeaveOnboarding(
+  pathname: string,
+  onboardingCompleted: boolean
+): boolean {
+  return onboardingCompleted && pathname.startsWith("/onboarding");
+}
+
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({
     request: {
@@ -60,6 +87,26 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);
+  }
+
+  if (user) {
+    const { data: profile } = await supabase
+      .from("business_profiles")
+      .select("onboarding_completed")
+      .maybeSingle();
+    const onboardingCompleted = profile?.onboarding_completed ?? false;
+
+    if (needsOnboardingRedirect(request.nextUrl.pathname, onboardingCompleted)) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/onboarding";
+      return NextResponse.redirect(url);
+    }
+
+    if (shouldLeaveOnboarding(request.nextUrl.pathname, onboardingCompleted)) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
+    }
   }
 
   return response;
