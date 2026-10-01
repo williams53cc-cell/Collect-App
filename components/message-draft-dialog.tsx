@@ -12,7 +12,12 @@ import {
   renderMessage,
   type MessageTone,
 } from "@/lib/message-templates";
-import { buildMailtoLink, buildSmsLink, isIOSDevice } from "@/lib/contact-links";
+import {
+  buildMailtoLink,
+  buildSmsLink,
+  buildWhatsAppLink,
+  isIOSDevice,
+} from "@/lib/contact-links";
 import { buildBusinessPaymentLink } from "@/lib/business-payment-link";
 import { buildPaymentContextLine } from "@/lib/payment-context";
 import type { PaymentMethod, PaymentTrigger, PaymentType } from "@/types/database";
@@ -194,22 +199,29 @@ export function DraftMessageDialog({
 
           {!phone && !email && (
             <p className="text-xs text-gray-400">
-              No phone or email on file for this customer — Text and Email
-              will open with no recipient pre-filled.
+              No phone or email on file for this customer — Text, WhatsApp,
+              and Email will open with no recipient pre-filled.
             </p>
           )}
 
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <a href={buildSmsLink(phone, message, isIOS)} className={buttonClassName({ variant: "secondary", className: "flex-1" })}>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <a href={buildSmsLink(phone, message, isIOS)} className={buttonClassName({ variant: "secondary" })}>
               Text
             </a>
-            <a href={buildMailtoLink(email, subject, message)} className={buttonClassName({ variant: "secondary", className: "flex-1" })}>
+            <a
+              href={buildWhatsAppLink(phone, message)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={buttonClassName({ variant: "secondary" })}
+            >
+              WhatsApp
+            </a>
+            <a href={buildMailtoLink(email, subject, message)} className={buttonClassName({ variant: "secondary" })}>
               Email
             </a>
             <Button
               type="button"
               variant="secondary"
-              className="flex-1"
               onClick={handleCopy}
             >
               {copyState === "copied"
