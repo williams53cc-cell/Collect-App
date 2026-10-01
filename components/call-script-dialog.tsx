@@ -13,7 +13,7 @@ interface CallScriptDialogProps {
   promisedDate: string | null;
 }
 
-/** Shown instead of the "Message" button once a follow-up's status is
+/** Shown instead of the "Draft message" button once a follow-up's status is
  * "Needs a call" — at that point another automated-feeling text isn't the
  * right move, so this gives the contractor a quick summary plus a
  * suggested opening line rather than a blank page to start the call from. */
