@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   daysOverdue,
+  formatPhoneAsTyped,
   isDueToday,
   isOverdue,
   signedDaysFromToday,
@@ -124,5 +125,35 @@ describe("signedDaysFromToday — unlike daysOverdue(), not clamped", () => {
 
   it("defensive: a null date is treated as today (0), not a crash", () => {
     expect(signedDaysFromToday(null)).toBe(0);
+  });
+});
+
+describe("formatPhoneAsTyped", () => {
+  it("formats progressively as digits are added, one keystroke at a time", () => {
+    expect(formatPhoneAsTyped("")).toBe("");
+    expect(formatPhoneAsTyped("5")).toBe("(5");
+    expect(formatPhoneAsTyped("555")).toBe("(555");
+    expect(formatPhoneAsTyped("5551")).toBe("(555) 1");
+    expect(formatPhoneAsTyped("555123")).toBe("(555) 123");
+    expect(formatPhoneAsTyped("5551234")).toBe("(555) 123-4");
+    expect(formatPhoneAsTyped("5551234567")).toBe("(555) 123-4567");
+  });
+
+  it("strips punctuation already in the value before reformatting it", () => {
+    expect(formatPhoneAsTyped("(555) 123-4567")).toBe("(555) 123-4567");
+    expect(formatPhoneAsTyped("555-123-4567")).toBe("(555) 123-4567");
+  });
+
+  it("recognizes a leading US country code on an 11-digit number", () => {
+    expect(formatPhoneAsTyped("15551234567")).toBe("+1 (555) 123-4567");
+    expect(formatPhoneAsTyped("+1 555 123 4567")).toBe("+1 (555) 123-4567");
+  });
+
+  it("leaves an 11-digit number that doesn't start with 1 as plain digits", () => {
+    expect(formatPhoneAsTyped("25551234567")).toBe("25551234567");
+  });
+
+  it("ignores any digits past the 11th rather than growing forever", () => {
+    expect(formatPhoneAsTyped("155512345678999")).toBe("+1 (555) 123-4567");
   });
 });
