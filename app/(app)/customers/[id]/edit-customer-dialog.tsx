@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { Alert } from "@/components/ui/alert";
 import { Dialog, type DialogHandle } from "@/components/ui/dialog";
 import {
@@ -109,10 +110,9 @@ export function EditCustomerDialog({
               />
             </Field>
             <Field label="Phone" htmlFor="edit_phone" error={errors.phone?.[0]}>
-              <Input
+              <PhoneInput
                 id="edit_phone"
                 name="phone"
-                type="tel"
                 defaultValue={phone ?? ""}
                 invalid={!!errors.phone}
                 placeholder="(555) 123-4567"
