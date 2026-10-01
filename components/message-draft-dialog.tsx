@@ -152,7 +152,7 @@ export function DraftMessageDialog({
         onClick={handleOpen}
         className="text-xs font-medium text-gray-600 hover:text-gray-900 hover:underline"
       >
-        Message
+        Draft message
       </button>
       <Dialog
         ref={dialogRef}
