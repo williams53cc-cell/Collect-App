@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   daysOverdue,
   formatPhoneAsTyped,
+  getGreeting,
   isDueToday,
   isOverdue,
   signedDaysFromToday,
@@ -155,5 +156,42 @@ describe("formatPhoneAsTyped", () => {
 
   it("ignores any digits past the 11th rather than growing forever", () => {
     expect(formatPhoneAsTyped("155512345678999")).toBe("+1 (555) 123-4567");
+  });
+});
+
+describe("getGreeting", () => {
+  it("picks a greeting from the hour in the given time zone", () => {
+    // Pin an exact UTC instant for this one test, rather than relying on
+    // FIXED_NOW's "local" time — that's whatever time zone the machine
+    // running these tests happens to be in (see the note on FIXED_NOW
+    // above), which is NOT always UTC. Intl resolves "UTC" (and any other
+    // zone) against real tzdata, independent of that machine's own
+    // default zone, so this holds everywhere.
+    vi.setSystemTime(new Date("2026-09-17T20:00:00.000Z"));
+    expect(getGreeting("UTC")).toBe("Good evening");
+  });
+
+  it("uses a different time zone's local hour, not the machine's own", () => {
+    vi.setSystemTime(new Date("2026-09-17T20:00:00.000Z"));
+    // 8:00 PM UTC is 4:00 PM in New York (UTC-4 in September) and 5:00 AM
+    // the next day in Tokyo (UTC+9) — two time zones, two different
+    // greetings, from the exact same instant.
+    expect(getGreeting("America/New_York")).toBe("Good afternoon");
+    expect(getGreeting("Asia/Tokyo")).toBe("Good morning");
+  });
+
+  it("falls back to the server's own local time when no time zone is set", () => {
+    // FIXED_NOW (the top-level beforeEach) is built with the local-Date
+    // constructor specifically so its 8:00 PM reads back as 8:00 PM on
+    // *any* machine — see the comment on FIXED_NOW above. getGreeting()
+    // with no time zone reads that same local clock, so this holds
+    // regardless of which time zone these tests happen to run in.
+    expect(getGreeting(null)).toBe("Good evening");
+    expect(getGreeting(undefined)).toBe("Good evening");
+  });
+
+  it("falls back gracefully for an unrecognized time zone instead of throwing", () => {
+    expect(() => getGreeting("Not/A_Zone")).not.toThrow();
+    expect(getGreeting("Not/A_Zone")).toBe("Good evening");
   });
 });
