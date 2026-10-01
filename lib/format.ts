@@ -13,6 +13,36 @@ export function formatCurrency(amount: number): string {
   return currencyFormatter.format(amount);
 }
 
+/** Formats a US-style phone number progressively as the contractor types,
+ * so "5551234567" becomes "(555) 123-4567" without them having to type the
+ * punctuation themselves — this is what's actually saved, so nothing else
+ * needs to reformat it again for display later (customer list, customer
+ * detail page, drafted messages). Works off the digit count alone: "555"
+ * becomes "(555", "5551234" becomes "(555) 123-4", and so on, so it stays
+ * correct no matter where in the number someone is typing or deleting. A
+ * leading "1" on an 11-digit number (the US country code, e.g. someone
+ * pasting "+1 555 123 4567") is recognized and shown as "+1 (555)
+ * 123-4567" instead of being folded into the area code. An 11-digit
+ * number that DOESN'T start with "1", or anything longer, isn't a shape
+ * this formats — GripBill's contractors are U.S.-based today, so that's
+ * left as plain digits rather than forced into a U.S. pattern that would
+ * misrepresent it. */
+export function formatPhoneAsTyped(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length === 11 && !digits.startsWith("1")) return digits;
+
+  const hasCountryCode = digits.length === 11;
+  const local = hasCountryCode ? digits.slice(1) : digits;
+  const prefix = hasCountryCode ? "+1 " : "";
+
+  if (local.length === 0) return "";
+  if (local.length <= 3) return `${prefix}(${local}`;
+  if (local.length <= 6) {
+    return `${prefix}(${local.slice(0, 3)}) ${local.slice(3)}`;
+  }
+  return `${prefix}(${local.slice(0, 3)}) ${local.slice(3, 6)}-${local.slice(6)}`;
+}
+
 /** `value` is a `date` column value (YYYY-MM-DD), not a full timestamp.
  *
  * This and the due-date helpers below deliberately keep accepting
