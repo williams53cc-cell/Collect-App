@@ -13,6 +13,38 @@ export function formatCurrency(amount: number): string {
   return currencyFormatter.format(amount);
 }
 
+/** A time-of-day greeting ("Good morning" / "Good afternoon" / "Good
+ * evening") for the Dashboard header, based on the CONTRACTOR's own local
+ * time — not the server's. `timezone` is the IANA zone saved on their
+ * business profile (Settings → Time zone, e.g. "America/New_York"). When
+ * it's not set yet, or isn't a zone `Intl` recognizes, this quietly falls
+ * back to the server's own local time instead of throwing — a slightly
+ * generic greeting is a much smaller problem than a broken dashboard. */
+export function getGreeting(timezone?: string | null): string {
+  let hour = new Date().getHours();
+
+  if (timezone) {
+    try {
+      const formatted = new Intl.DateTimeFormat("en-US", {
+        hour: "numeric",
+        hour12: false,
+        timeZone: timezone,
+      }).format(new Date());
+      const parsed = parseInt(formatted, 10);
+      // Some environments report midnight as "24" rather than "0" with
+      // hour12: false — normalize so the boundary check below still treats
+      // it as the start of the day, not the end.
+      if (!Number.isNaN(parsed)) hour = parsed % 24;
+    } catch {
+      // Invalid/unrecognized time zone — keep the server-local hour above.
+    }
+  }
+
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+}
+
 /** Formats a US-style phone number progressively as the contractor types,
  * so "5551234567" becomes "(555) 123-4567" without them having to type the
  * punctuation themselves — this is what's actually saved, so nothing else
