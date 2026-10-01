@@ -1,6 +1,13 @@
 import { createClient } from "@/utils/supabase/server";
 import { todayISODate } from "@/lib/format";
-import type { FollowUpStatus, PaymentTrigger, PaymentType } from "@/types/database";
+import type {
+  Database,
+  FollowUpStatus,
+  PaymentTrigger,
+  PaymentType,
+} from "@/types/database";
+
+type FollowUpRow = Database["public"]["Tables"]["follow_ups"]["Row"];
 
 export type FollowUpFilterKey =
   | "all"
@@ -41,34 +48,14 @@ export interface FollowUpWithCustomer {
   customerPaymentTriggerNote: string | null;
 }
 
-export async function getFollowUps(
-  filter: FollowUpFilterKey = "all"
+/** Shared by getFollowUps() and getActionableFollowUps() — fetches each
+ * follow-up's customer in one batched query (rather than one query per
+ * row) and stitches the two together into the flat shape the UI wants. */
+async function withCustomerInfo(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  followUps: FollowUpRow[]
 ): Promise<FollowUpWithCustomer[]> {
-  const supabase = await createClient();
-  const today = todayISODate();
-
-  let query = supabase
-    .from("follow_ups")
-    .select("*")
-    .order("due_date", { ascending: true, nullsFirst: false });
-
-  if (filter === "due-today") {
-    query = query.eq("status", "pending").eq("due_date", today);
-  } else if (filter === "overdue") {
-    query = query.eq("status", "pending").lt("due_date", today);
-  } else if (
-    filter === "pending" ||
-    filter === "done" ||
-    filter === "skipped"
-  ) {
-    query = query.eq("status", filter);
-  } else if (filter === "promised") {
-    query = query.not("promised_date", "is", null);
-  }
-
-  const { data: followUps, error } = await query;
-  if (error) throw new Error(error.message);
-  if (!followUps || followUps.length === 0) return [];
+  if (followUps.length === 0) return [];
 
   const customerIds = Array.from(
     new Set(followUps.map((followUp) => followUp.customer_id))
@@ -100,6 +87,58 @@ export async function getFollowUps(
       customerPaymentTriggerNote: customer?.payment_trigger_note ?? null,
     };
   });
+}
+
+export async function getFollowUps(
+  filter: FollowUpFilterKey = "all"
+): Promise<FollowUpWithCustomer[]> {
+  const supabase = await createClient();
+  const today = todayISODate();
+
+  let query = supabase
+    .from("follow_ups")
+    .select("*")
+    .order("due_date", { ascending: true, nullsFirst: false });
+
+  if (filter === "due-today") {
+    query = query.eq("status", "pending").eq("due_date", today);
+  } else if (filter === "overdue") {
+    query = query.eq("status", "pending").lt("due_date", today);
+  } else if (
+    filter === "pending" ||
+    filter === "done" ||
+    filter === "skipped"
+  ) {
+    query = query.eq("status", filter);
+  } else if (filter === "promised") {
+    query = query.not("promised_date", "is", null);
+  }
+
+  const { data: followUps, error } = await query;
+  if (error) throw new Error(error.message);
+
+  return withCustomerInfo(supabase, followUps ?? []);
+}
+
+/** Every follow-up that still needs the contractor's attention — status
+ * "pending" or "needs_call" — with customer info attached, same as
+ * getFollowUps(). This is the Dashboard's raw material: lib/dashboard-summary.ts
+ * takes this list and boils it down into the summary cards and the "Needs
+ * attention" table, purely from each row's own due_date/status/promised_date. */
+export async function getActionableFollowUps(): Promise<
+  FollowUpWithCustomer[]
+> {
+  const supabase = await createClient();
+
+  const { data: followUps, error } = await supabase
+    .from("follow_ups")
+    .select("*")
+    .in("status", ["pending", "needs_call"])
+    .order("due_date", { ascending: true, nullsFirst: false });
+
+  if (error) throw new Error(error.message);
+
+  return withCustomerInfo(supabase, followUps ?? []);
 }
 
 export async function getFollowUpsForCustomer(customerId: string) {
