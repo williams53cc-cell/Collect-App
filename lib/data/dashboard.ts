@@ -1,22 +1,24 @@
 import { getCustomerStats } from "@/lib/data/customers";
-import { getFollowUps, getFollowUpStats } from "@/lib/data/follow-ups";
+import { getActionableFollowUps } from "@/lib/data/follow-ups";
+import { summarizeFollowUps } from "@/lib/dashboard-summary";
+import { todayISODate } from "@/lib/format";
 
 export async function getDashboardData() {
-  const [customerStats, followUpStats, overdueFollowUps, dueTodayFollowUps] =
-    await Promise.all([
-      getCustomerStats(),
-      getFollowUpStats(),
-      getFollowUps("overdue"),
-      getFollowUps("due-today"),
-    ]);
+  const [customerStats, followUps] = await Promise.all([
+    getCustomerStats(),
+    getActionableFollowUps(),
+  ]);
+
+  const { summary, attentionItems } = summarizeFollowUps(
+    followUps,
+    todayISODate()
+  );
 
   return {
     customerStats,
-    followUpStats,
-    // Overdue first, then due today, capped so the dashboard stays scannable.
-    attentionFollowUps: [...overdueFollowUps, ...dueTodayFollowUps].slice(
-      0,
-      8
-    ),
+    summary,
+    // Sorted most-urgent-first by summarizeFollowUps(); capped so the
+    // dashboard stays scannable even with a long list.
+    attentionFollowUps: attentionItems.slice(0, 10),
   };
 }
