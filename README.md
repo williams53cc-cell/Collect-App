@@ -1,4 +1,4 @@
-# COLLECT
+# GripBill
 
 A small Next.js + Supabase SaaS for tracking who owes you money and following up.
 
