@@ -16,6 +16,11 @@ export type PaymentTrigger =
 export type BusinessType =
   | "renovation_contractor"
   | "general_contractor"
+  | "mason"
+  | "carpenter"
+  | "steel_fixer"
+  | "welder"
+  | "draftsman_estimator"
   | "electrician"
   | "plumber"
   | "hvac_contractor"
@@ -24,7 +29,14 @@ export type BusinessType =
   | "roofer"
   | "tile_installer"
   | "other";
-export type PaymentMethod = "paypal" | "venmo" | "zelle" | "check" | "other";
+export type PaymentMethod =
+  | "bank_transfer"
+  | "cash"
+  | "paypal"
+  | "venmo"
+  | "zelle"
+  | "check"
+  | "other";
 
 export interface Database {
   public: {
