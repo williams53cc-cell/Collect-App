@@ -3,6 +3,11 @@ import { z } from "zod";
 export const BUSINESS_TYPES = [
   "renovation_contractor",
   "general_contractor",
+  "mason",
+  "carpenter",
+  "steel_fixer",
+  "welder",
+  "draftsman_estimator",
   "electrician",
   "plumber",
   "hvac_contractor",
@@ -19,6 +24,11 @@ export const BUSINESS_TYPE_LABELS: Record<
 > = {
   renovation_contractor: "Renovation Contractor",
   general_contractor: "General Contractor",
+  mason: "Mason",
+  carpenter: "Carpenter",
+  steel_fixer: "Steel Fixer",
+  welder: "Welder",
+  draftsman_estimator: "Draftsman / Estimator",
   electrician: "Electrician",
   plumber: "Plumber",
   hvac_contractor: "HVAC Contractor",
@@ -54,10 +64,12 @@ export const CURRENCY_LABELS: Record<(typeof CURRENCIES)[number], string> = {
 };
 
 export const PAYMENT_METHODS = [
+  "bank_transfer",
+  "cash",
   "paypal",
+  "check",
   "venmo",
   "zelle",
-  "check",
   "other",
 ] as const;
 
@@ -65,6 +77,8 @@ export const PAYMENT_METHOD_LABELS: Record<
   (typeof PAYMENT_METHODS)[number],
   string
 > = {
+  bank_transfer: "Bank transfer",
+  cash: "Cash",
   paypal: "PayPal",
   venmo: "Venmo",
   zelle: "Zelle",
