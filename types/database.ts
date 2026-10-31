@@ -29,6 +29,9 @@ export type BusinessType =
   | "roofer"
   | "tile_installer"
   | "other";
+export type QuoteStatus = "draft" | "sent" | "accepted" | "declined";
+export type QuoteSection = "materials" | "labour" | "extras";
+export type QuoteCustomerView = "detailed" | "section_totals";
 export type PaymentMethod =
   | "bank_transfer"
   | "cash"
@@ -240,8 +243,146 @@ export interface Database {
         };
         Relationships: [];
       };
+      quotes: {
+        Row: {
+          id: string;
+          user_id: string;
+          customer_id: string | null;
+          quote_number: number;
+          title: string;
+          client_name: string;
+          client_phone: string | null;
+          client_email: string | null;
+          client_address: string | null;
+          status: QuoteStatus;
+          currency: string;
+          discount_amount: number;
+          tax_rate: number;
+          customer_view: QuoteCustomerView;
+          valid_until: string | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string;
+          customer_id?: string | null;
+          quote_number?: number;
+          title: string;
+          client_name: string;
+          client_phone?: string | null;
+          client_email?: string | null;
+          client_address?: string | null;
+          status?: QuoteStatus;
+          currency?: string;
+          discount_amount?: number;
+          tax_rate?: number;
+          customer_view?: QuoteCustomerView;
+          valid_until?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          customer_id?: string | null;
+          quote_number?: number;
+          title?: string;
+          client_name?: string;
+          client_phone?: string | null;
+          client_email?: string | null;
+          client_address?: string | null;
+          status?: QuoteStatus;
+          currency?: string;
+          discount_amount?: number;
+          tax_rate?: number;
+          customer_view?: QuoteCustomerView;
+          valid_until?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "quotes_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      quote_items: {
+        Row: {
+          id: string;
+          user_id: string;
+          quote_id: string;
+          section: QuoteSection;
+          stage: string | null;
+          position: number;
+          description: string;
+          unit: string | null;
+          quantity: number;
+          unit_price: number;
+          amount: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string;
+          quote_id: string;
+          section: QuoteSection;
+          stage?: string | null;
+          position?: number;
+          description: string;
+          unit?: string | null;
+          quantity?: number;
+          unit_price?: number;
+          amount?: never;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          quote_id?: string;
+          section?: QuoteSection;
+          stage?: string | null;
+          position?: number;
+          description?: string;
+          unit?: string | null;
+          quantity?: number;
+          unit_price?: number;
+          amount?: never;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "quote_items_quote_id_fkey";
+            columns: ["quote_id"];
+            isOneToOne: false;
+            referencedRelation: "quotes";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     };
-    Views: Record<string, never>;
+    Views: {
+      quote_totals: {
+        Row: {
+          quote_id: string;
+          materials_total: number;
+          labour_total: number;
+          extras_total: number;
+          subtotal: number;
+          discount_amount: number;
+          tax_amount: number;
+          total: number;
+        };
+        Relationships: [];
+      };
+    };
     Functions: Record<string, never>;
   };
 }
