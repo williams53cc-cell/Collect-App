@@ -1,1 +1,1 @@
-
+lib/data/quotes.ts
