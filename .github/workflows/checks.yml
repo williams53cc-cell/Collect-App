@@ -1,0 +1,46 @@
+name: Checks
+
+# Runs the same checks on every save to main and on every pull request.
+# A green tick means: the types are right, the lint is clean, all tests pass
+# and the app builds. A red cross means something needs fixing.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Fake values, only so the app can be built. Real keys are never used here.
+      NEXT_PUBLIC_SUPABASE_URL: http://localhost:54321
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: dummy-key-for-build-only
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
