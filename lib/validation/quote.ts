@@ -185,6 +185,10 @@ function parseItems(
       (priceRaw === undefined || priceRaw === 0);
     if (untouched) continue;
 
+    // A line with a description but no quantity and no price is a template
+    // line that was not filled in, so it is left out rather than rejected.
+    if (quantityRaw === undefined && priceRaw === undefined) continue;
+
     let ok = true;
     const problem = (message: string) => {
       addError(errors, "items", `${label}: ${message}`);
