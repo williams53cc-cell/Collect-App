@@ -1,11 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Field, Input, Textarea } from "@/components/ui/field";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/alert";
 import { initialFormState } from "@/lib/form-state";
+import { hasTerm, TERM_OPTIONS, toggleTerm } from "@/lib/quote-terms";
 import { updateBusinessContact } from "./contact-actions";
 
 export function BusinessContactForm({
@@ -23,6 +24,8 @@ export function BusinessContactForm({
     updateBusinessContact,
     initialFormState
   );
+
+  const [termsText, setTermsText] = useState(terms ?? "");
 
   const errors = state.errors ?? {};
 
@@ -69,7 +72,7 @@ export function BusinessContactForm({
           defaultValue={address ?? ""}
           invalid={!!errors.business_address}
           rows={2}
-          placeholder="Ackles Hill, Kitson Town, St. Catherine"
+          placeholder="12 Main Street, Spanish Town, St. Catherine"
         />
       </Field>
 
@@ -77,15 +80,37 @@ export function BusinessContactForm({
         label="Terms on your quotes"
         htmlFor="quote_terms"
         error={errors.quote_terms?.[0]}
-        hint="Printed at the bottom of every quote."
+        hint="Printed at the bottom of every quote. Tap a line to add it, tap again to remove it, or type your own."
       >
+        <div className="mb-2 flex flex-wrap gap-2">
+          {TERM_OPTIONS.map((term) => {
+            const active = hasTerm(termsText, term);
+            return (
+              <button
+                key={term}
+                type="button"
+                aria-pressed={active}
+                onClick={() => setTermsText(toggleTerm(termsText, term))}
+                className={`rounded-full border px-3 py-1.5 text-left text-sm ${
+                  active
+                    ? "border-blue-600 bg-blue-50 font-medium text-blue-700"
+                    : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                {active ? "✓ " : "+ "}
+                {term}
+              </button>
+            );
+          })}
+        </div>
         <Textarea
           id="quote_terms"
           name="quote_terms"
-          defaultValue={terms ?? ""}
+          value={termsText}
+          onChange={(event) => setTermsText(event.target.value)}
           invalid={!!errors.quote_terms}
-          rows={4}
-          placeholder="50% deposit before work starts. Balance on completion. Prices valid for 30 days."
+          rows={5}
+          placeholder="Tap a line above, or type your own terms here."
         />
       </Field>
 
