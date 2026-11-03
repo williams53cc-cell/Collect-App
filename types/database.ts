@@ -205,6 +205,10 @@ export interface Database {
           payment_method: PaymentMethod | null;
           payment_link: string | null;
           payment_instructions: string | null;
+          business_phone: string | null;
+          business_email: string | null;
+          business_address: string | null;
+          quote_terms: string | null;
           include_payment_link_default: boolean;
           onboarding_completed: boolean;
           created_at: string;
@@ -221,6 +225,10 @@ export interface Database {
           payment_method?: PaymentMethod | null;
           payment_link?: string | null;
           payment_instructions?: string | null;
+          business_phone?: string | null;
+          business_email?: string | null;
+          business_address?: string | null;
+          quote_terms?: string | null;
           include_payment_link_default?: boolean;
           onboarding_completed?: boolean;
           created_at?: string;
@@ -237,6 +245,10 @@ export interface Database {
           payment_method?: PaymentMethod | null;
           payment_link?: string | null;
           payment_instructions?: string | null;
+          business_phone?: string | null;
+          business_email?: string | null;
+          business_address?: string | null;
+          quote_terms?: string | null;
           include_payment_link_default?: boolean;
           onboarding_completed?: boolean;
           created_at?: string;
