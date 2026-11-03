@@ -1,44 +1,73 @@
-import { z } from "zod";
+import { describe, expect, it } from "vitest";
+import {
+  parseBusinessContactForm,
+  QUOTE_TERMS_MAX,
+} from "./business-contact";
 
-/** Shown at the top and bottom of the quote PDF. Every box is optional:
- * a contractor who leaves one empty just gets a quote without that line. */
-
-export const BUSINESS_PHONE_MAX = 50;
-export const BUSINESS_EMAIL_MAX = 200;
-export const BUSINESS_ADDRESS_MAX = 300;
-export const QUOTE_TERMS_MAX = 1000;
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-export const businessContactSchema = z.object({
-  business_phone: z
-    .string()
-    .trim()
-    .max(BUSINESS_PHONE_MAX, "Phone must be 50 characters or fewer."),
-  business_email: z
-    .string()
-    .trim()
-    .max(BUSINESS_EMAIL_MAX, "Email must be 200 characters or fewer.")
-    .refine((value) => value === "" || EMAIL_PATTERN.test(value), {
-      message: "Enter a valid email, like name@example.com.",
-    }),
-  business_address: z
-    .string()
-    .trim()
-    .max(BUSINESS_ADDRESS_MAX, "Address must be 300 characters or fewer."),
-  quote_terms: z
-    .string()
-    .trim()
-    .max(QUOTE_TERMS_MAX, "Terms must be 1000 characters or fewer."),
-});
-
-export type BusinessContactInput = z.infer<typeof businessContactSchema>;
-
-export function parseBusinessContactForm(formData: FormData) {
-  return businessContactSchema.safeParse({
-    business_phone: formData.get("business_phone") || "",
-    business_email: formData.get("business_email") || "",
-    business_address: formData.get("business_address") || "",
-    quote_terms: formData.get("quote_terms") || "",
-  });
+function form(values: Record<string, string>) {
+  const data = new FormData();
+  for (const [key, value] of Object.entries(values)) data.set(key, value);
+  return data;
 }
+
+describe("parseBusinessContactForm", () => {
+  it("accepts all boxes empty", () => {
+    const result = parseBusinessContactForm(form({}));
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({
+        business_phone: "",
+        business_email: "",
+        business_address: "",
+        quote_terms: "",
+      });
+    }
+  });
+
+  it("trims spaces and keeps real details", () => {
+    const result = parseBusinessContactForm(
+      form({
+        business_phone: "  (876) 501-5735 ",
+        business_email: " vern@example.com ",
+        business_address: " Ackles Hill, Kitson Town, St. Catherine ",
+        quote_terms: " 50% deposit before work starts. ",
+      })
+    );
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.business_phone).toBe("(876) 501-5735");
+      expect(result.data.business_email).toBe("vern@example.com");
+      expect(result.data.business_address).toBe(
+        "Ackles Hill, Kitson Town, St. Catherine"
+      );
+      expect(result.data.quote_terms).toBe("50% deposit before work starts.");
+    }
+  });
+
+  it("rejects an email that is not an email", () => {
+    const result = parseBusinessContactForm(
+      form({ business_email: "not-an-email" })
+    );
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0].path[0]).toBe("business_email");
+    }
+  });
+
+  it("rejects terms that are too long", () => {
+    const result = parseBusinessContactForm(
+      form({ quote_terms: "a".repeat(QUOTE_TERMS_MAX + 1) })
+    );
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0].path[0]).toBe("quote_terms");
+    }
+  });
+
+  it("accepts terms exactly at the limit", () => {
+    const result = parseBusinessContactForm(
+      form({ quote_terms: "a".repeat(QUOTE_TERMS_MAX) })
+    );
+    expect(result.success).toBe(true);
+  });
+});
