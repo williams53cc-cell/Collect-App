@@ -267,7 +267,7 @@ export function QuoteForm({
             value={clientName}
             onChange={(event) => setClientName(event.target.value)}
             invalid={!!errors.client_name}
-            placeholder="Ms. Madge"
+            placeholder="Ms. Brown"
           />
         </Field>
 
