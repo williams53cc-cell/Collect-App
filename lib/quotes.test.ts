@@ -7,9 +7,9 @@ import {
   type QuoteLine,
 } from "./quotes";
 
-// The 13 labour lines from a real contractor invoice (Ms. Madge quotation).
-// The document's own total is 4,303,600.00.
-const MADGE_LABOUR: QuoteLine[] = [
+// The 13 labour lines from the "House labour" template, with sample prices.
+// The expected total is 4,303,600.00.
+const SAMPLE_LABOUR: QuoteLine[] = [
   [1.5, 100000],
   [70, 1500],
   [20, 10000],
@@ -54,8 +54,8 @@ describe("lineAmount", () => {
 });
 
 describe("calculateQuoteTotals", () => {
-  it("matches the real labour invoice total", () => {
-    const totals = calculateQuoteTotals(MADGE_LABOUR, 0, 0);
+  it("matches the expected labour total", () => {
+    const totals = calculateQuoteTotals(SAMPLE_LABOUR, 0, 0);
     expect(totals.labour).toBe(4303600);
     expect(totals.subtotal).toBe(4303600);
     expect(totals.total).toBe(4303600);
@@ -63,7 +63,7 @@ describe("calculateQuoteTotals", () => {
 
   it("splits materials, labour and extras, then applies discount and tax", () => {
     const lines: QuoteLine[] = [
-      ...MADGE_LABOUR,
+      ...SAMPLE_LABOUR,
       { section: "materials", quantity: 50, unitPrice: 1750 },
       { section: "materials", quantity: 25, unitPrice: 2500 },
       { section: "extras", quantity: 2, unitPrice: 7500.55 },
