@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getBusinessProfile } from "@/lib/data/business-profile";
 import { getCustomers } from "@/lib/data/customers";
 import { getQuote } from "@/lib/data/quotes";
 import { todayISODate } from "@/lib/format";
 import { formatQuoteNumber, isQuoteExpired } from "@/lib/quotes";
 import { QuoteActions } from "../quote-actions";
 import { QuoteForm, type QuoteFormInitial } from "../quote-form";
+import { QuoteShare } from "../quote-share";
 import { QuoteStatusBadge } from "../quote-status-badge";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -27,6 +29,7 @@ export default async function QuoteDetailPage({
   if (!quote) notFound();
 
   const customers = await getCustomers();
+  const profile = await getBusinessProfile();
   const label = formatQuoteNumber(quote.quote_number);
 
   const initial: QuoteFormInitial = {
@@ -80,6 +83,19 @@ export default async function QuoteDetailPage({
             quoteId={quote.id}
             status={quote.status}
             quoteLabel={label}
+          />
+        </div>
+        <div className="mt-4 border-t border-gray-100 pt-4">
+          <QuoteShare
+            quoteId={quote.id}
+            quoteLabel={label}
+            title={quote.title}
+            clientName={quote.client_name}
+            clientPhone={quote.client_phone}
+            total={quote.totals.total}
+            currency={quote.currency}
+            businessName={profile?.business_name ?? null}
+            status={quote.status}
           />
         </div>
       </div>
