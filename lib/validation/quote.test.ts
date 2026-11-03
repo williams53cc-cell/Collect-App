@@ -149,6 +149,34 @@ describe("parseQuoteForm", () => {
     expect(result.data.items).toHaveLength(1);
   });
 
+  it("leaves out lines that have a description but no quantity and no price", () => {
+    const result = parseQuoteForm(
+      form({}, [
+        goodItem,
+        { section: "labour", description: "Tie steel", unit: "tonne", quantity: "", unit_price: "" },
+      ])
+    );
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    expect(result.data.items).toHaveLength(1);
+
+    const onlyBlank = parseQuoteForm(
+      form({}, [
+        { section: "labour", description: "Tie steel", unit: "tonne", quantity: "", unit_price: "" },
+      ])
+    );
+    expect(onlyBlank.success).toBe(false);
+  });
+
+  it("still complains when only one of quantity and price is missing", () => {
+    const result = parseQuoteForm(
+      form({}, [
+        { section: "labour", description: "Tie steel", unit: "tonne", quantity: "2", unit_price: "" },
+      ])
+    );
+    expect(result.success).toBe(false);
+  });
+
   it("numbers lines in the order given and counts positions after skipping blanks", () => {
     const result = parseQuoteForm(
       form({}, [
