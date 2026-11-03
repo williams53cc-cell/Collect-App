@@ -27,18 +27,18 @@ describe("parseBusinessContactForm", () => {
   it("trims spaces and keeps real details", () => {
     const result = parseBusinessContactForm(
       form({
-        business_phone: "  (876) 501-5735 ",
-        business_email: " vern@example.com ",
-        business_address: " Ackles Hill, Kitson Town, St. Catherine ",
+        business_phone: "  (876) 555-0123 ",
+        business_email: " name@example.com ",
+        business_address: " 12 Main Street, Spanish Town, St. Catherine ",
         quote_terms: " 50% deposit before work starts. ",
       })
     );
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.business_phone).toBe("(876) 501-5735");
-      expect(result.data.business_email).toBe("vern@example.com");
+      expect(result.data.business_phone).toBe("(876) 555-0123");
+      expect(result.data.business_email).toBe("name@example.com");
       expect(result.data.business_address).toBe(
-        "Ackles Hill, Kitson Town, St. Catherine"
+        "12 Main Street, Spanish Town, St. Catherine"
       );
       expect(result.data.quote_terms).toBe("50% deposit before work starts.");
     }
