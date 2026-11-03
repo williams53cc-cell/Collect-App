@@ -97,7 +97,7 @@ function fakeClient(options: {
 
 const input: QuoteInput = {
   title: "Roof",
-  client_name: "Ms. Madge",
+  client_name: "Ms. Brown",
   client_phone: null,
   client_email: null,
   client_address: null,
@@ -214,7 +214,7 @@ describe("duplicateQuoteWithItems", () => {
     id: "q1",
     customer_id: "c1",
     title: "Roof",
-    client_name: "Ms. Madge",
+    client_name: "Ms. Brown",
     client_phone: "876",
     client_email: null,
     client_address: null,
