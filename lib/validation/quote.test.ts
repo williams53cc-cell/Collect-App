@@ -5,7 +5,7 @@ function form(fields: Record<string, string>, items?: unknown): FormData {
   const data = new FormData();
   const base: Record<string, string> = {
     title: "Roof repair",
-    client_name: "Ms. Madge",
+    client_name: "Ms. Brown",
     ...fields,
   };
   for (const [key, value] of Object.entries(base)) data.set(key, value);
@@ -65,7 +65,7 @@ describe("parseQuoteForm", () => {
     if (!result.success) return;
     expect(result.data).toEqual({
       title: "Roof repair",
-      client_name: "Ms. Madge",
+      client_name: "Ms. Brown",
       client_phone: "876-555-0100",
       client_email: null,
       client_address: null,
