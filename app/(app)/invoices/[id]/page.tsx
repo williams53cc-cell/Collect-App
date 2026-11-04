@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getBusinessProfile } from "@/lib/data/business-profile";
 import { getInvoice } from "@/lib/data/invoices";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { formatInvoiceNumber, formatLineQuantity } from "@/lib/invoices";
 import { QUOTE_SECTIONS, QUOTE_SECTION_LABELS } from "@/lib/quotes";
 import { InvoiceActions } from "../invoice-actions";
+import { InvoiceShare } from "../invoice-share";
 import { InvoiceStatusBadge } from "../invoice-status-badge";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -20,6 +22,7 @@ export default async function InvoiceDetailPage({
   const invoice = await getInvoice(id);
   if (!invoice) notFound();
 
+  const profile = await getBusinessProfile();
   const label = formatInvoiceNumber(invoice.invoice_number);
   const sectionTotals = {
     materials: invoice.totals.materials_total,
@@ -89,6 +92,31 @@ export default async function InvoiceDetailPage({
             invoiceLabel={label}
           />
         </div>
+        {invoice.status !== "draft" && (
+          <div className="mt-4 border-t border-gray-100 pt-4">
+            <InvoiceShare
+              invoiceId={invoice.id}
+              invoiceLabel={label}
+              title={invoice.title}
+              clientName={invoice.client_name}
+              clientPhone={invoice.client_phone}
+              total={invoice.totals.total}
+              currency={invoice.currency}
+              dueOn={invoice.due_on ? formatDate(invoice.due_on) : null}
+              businessName={profile?.business_name ?? null}
+            />
+            {!profile?.payment_instructions?.trim() && (
+              <p className="mt-2 text-xs text-amber-700">
+                Your bank details are not set up yet, so the PDF will not show
+                how to pay you.{" "}
+                <Link href="/settings" className="underline">
+                  Add them in Settings
+                </Link>
+                .
+              </p>
+            )}
+          </div>
+        )}
         {invoice.status === "draft" && (
           <p className="mt-4 border-t border-gray-100 pt-4 text-xs text-gray-400">
             This is a draft. It has no invoice number yet. Issue it when you are
