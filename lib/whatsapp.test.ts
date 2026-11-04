@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { quoteShareMessage, whatsappLink, whatsappNumber } from "./whatsapp";
+import {
+  invoiceShareMessage,
+  quoteShareMessage,
+  whatsappLink,
+  whatsappNumber,
+} from "./whatsapp";
 
 describe("whatsappNumber", () => {
   it("adds the 1 for a 10-digit Jamaican or North American number", () => {
@@ -58,5 +63,39 @@ describe("whatsappLink", () => {
 
   it("lets you pick a contact when there is no number", () => {
     expect(whatsappLink(null, "Hi")).toBe("https://wa.me/?text=Hi");
+  });
+});
+
+describe("invoiceShareMessage", () => {
+  it("names the invoice, the total and the due date", () => {
+    expect(
+      invoiceShareMessage({
+        clientName: "Ms. Brown",
+        invoiceLabel: "INV-0007",
+        title: "Roof",
+        total: 10000,
+        currency: "JMD",
+        dueOn: "18 Nov 2026",
+        businessName: " Brown Construction ",
+      })
+    ).toBe(
+      "Hi Ms. Brown, here is invoice INV-0007 for Roof from Brown Construction. " +
+        "Total: JMD 10,000.00. Payment is due by 18 Nov 2026. " +
+        "Payment details are on the invoice. Thank you."
+    );
+  });
+
+  it("leaves out the business and the due date when there are none", () => {
+    const text = invoiceShareMessage({
+      clientName: "Ms. Brown",
+      invoiceLabel: "INV-0007",
+      title: "Roof",
+      total: 10000,
+      currency: "JMD",
+    });
+    expect(text).toBe(
+      "Hi Ms. Brown, here is invoice INV-0007 for Roof. Total: JMD 10,000.00. " +
+        "Payment details are on the invoice. Thank you."
+    );
   });
 });
