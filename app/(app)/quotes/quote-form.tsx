@@ -451,6 +451,12 @@ export function QuoteForm({
                         }
                         placeholder="0.00"
                       />
+                      {row.presetPrice !== "" &&
+                        row.unit_price.trim() === row.presetPrice.trim() && (
+                          <p className="mt-1 text-xs text-blue-600">
+                            Suggested price. Tap to change it.
+                          </p>
+                        )}
                     </div>
                   </div>
 
