@@ -32,6 +32,7 @@ export type BusinessType =
 export type QuoteStatus = "draft" | "sent" | "accepted" | "declined";
 export type QuoteSection = "materials" | "labour" | "extras";
 export type QuoteCustomerView = "detailed" | "section_totals";
+export type InvoiceStatus = "draft" | "issued" | "void";
 export type PaymentMethod =
   | "bank_transfer"
   | "cash"
@@ -379,6 +380,149 @@ export interface Database {
           }
         ];
       };
+      invoices: {
+        Row: {
+          id: string;
+          user_id: string;
+          customer_id: string | null;
+          quote_id: string | null;
+          invoice_number: number | null;
+          title: string;
+          client_name: string;
+          client_phone: string | null;
+          client_email: string | null;
+          client_address: string | null;
+          status: InvoiceStatus;
+          currency: string;
+          discount_amount: number;
+          tax_rate: number;
+          customer_view: QuoteCustomerView;
+          issued_on: string | null;
+          due_on: string | null;
+          notes: string | null;
+          voided_at: string | null;
+          void_reason: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string;
+          customer_id?: string | null;
+          quote_id?: string | null;
+          invoice_number?: number | null;
+          title: string;
+          client_name: string;
+          client_phone?: string | null;
+          client_email?: string | null;
+          client_address?: string | null;
+          status?: InvoiceStatus;
+          currency?: string;
+          discount_amount?: number;
+          tax_rate?: number;
+          customer_view?: QuoteCustomerView;
+          issued_on?: string | null;
+          due_on?: string | null;
+          notes?: string | null;
+          voided_at?: string | null;
+          void_reason?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          customer_id?: string | null;
+          quote_id?: string | null;
+          invoice_number?: number | null;
+          title?: string;
+          client_name?: string;
+          client_phone?: string | null;
+          client_email?: string | null;
+          client_address?: string | null;
+          status?: InvoiceStatus;
+          currency?: string;
+          discount_amount?: number;
+          tax_rate?: number;
+          customer_view?: QuoteCustomerView;
+          issued_on?: string | null;
+          due_on?: string | null;
+          notes?: string | null;
+          voided_at?: string | null;
+          void_reason?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "invoices_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoices_quote_id_fkey";
+            columns: ["quote_id"];
+            isOneToOne: false;
+            referencedRelation: "quotes";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      invoice_items: {
+        Row: {
+          id: string;
+          user_id: string;
+          invoice_id: string;
+          section: QuoteSection;
+          stage: string | null;
+          position: number;
+          description: string;
+          unit: string | null;
+          quantity: number;
+          unit_price: number;
+          amount: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string;
+          invoice_id: string;
+          section: QuoteSection;
+          stage?: string | null;
+          position?: number;
+          description: string;
+          unit?: string | null;
+          quantity?: number;
+          unit_price?: number;
+          amount?: never;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          invoice_id?: string;
+          section?: QuoteSection;
+          stage?: string | null;
+          position?: number;
+          description?: string;
+          unit?: string | null;
+          quantity?: number;
+          unit_price?: number;
+          amount?: never;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoices";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     };
     Views: {
       quote_totals: {
@@ -394,7 +538,25 @@ export interface Database {
         };
         Relationships: [];
       };
+      invoice_totals: {
+        Row: {
+          invoice_id: string;
+          materials_total: number;
+          labour_total: number;
+          extras_total: number;
+          subtotal: number;
+          discount_amount: number;
+          tax_amount: number;
+          total: number;
+        };
+        Relationships: [];
+      };
     };
-    Functions: Record<string, never>;
+    Functions: {
+      create_invoice_from_quote: {
+        Args: { p_quote_id: string };
+        Returns: string;
+      };
+    };
   };
 }
