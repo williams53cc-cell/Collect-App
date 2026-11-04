@@ -58,6 +58,18 @@ export interface QuotePdfInput {
   timeZone?: string | null;
 }
 
+/** Everything the invoice PDF needs. It has the same shape as a quote,
+ * plus a due date, the bank / payment details and whether it was cancelled. */
+export interface InvoicePdfInput {
+  business: QuotePdfInput["business"] & { paymentInstructions: string | null };
+  invoice: Omit<QuotePdfInput["quote"], "validUntil"> & {
+    /** YYYY-MM-DD, or null. */
+    dueOn: string | null;
+    status: "issued" | "void";
+  };
+  timeZone?: string | null;
+}
+
 // ---------- small helpers (exported so they can be tested) ----------
 
 const REPLACEMENTS: Record<string, string> = {
@@ -506,7 +518,7 @@ function drawSectionTotalsTable(sheet: Sheet, input: QuotePdfInput) {
   }
 }
 
-function drawTotals(sheet: Sheet, input: QuotePdfInput) {
+function drawTotals(sheet: Sheet, input: QuotePdfInput, totalLabel: string) {
   const { totals, taxRate, currency } = input.quote;
   const boxW = 250;
   const x = PAGE_W - MARGIN - boxW;
@@ -534,7 +546,7 @@ function drawTotals(sheet: Sheet, input: QuotePdfInput) {
   }
   if (rows.length > 0) sheet.y -= 6;
   sheet.rect(x, sheet.y - 26, boxW, 26, ACCENT);
-  sheet.text(`TOTAL (${currency})`, x + 10, sheet.y - 17, {
+  sheet.text(`${totalLabel} (${currency})`, x + 10, sheet.y - 17, {
     font: sheet.fonts.bold,
     size: 10,
     color: WHITE,
@@ -608,15 +620,31 @@ function drawTermsBeside(sheet: Sheet, termLines: string[]) {
   sheet.y = top - height;
 }
 
-/** Builds the quote as an A4 PDF and returns its bytes. */
-export async function buildQuotePdf(input: QuotePdfInput): Promise<Uint8Array> {
+interface RenderOptions {
+  word: "Quote" | "Invoice";
+  number: string;
+  dateText: string;
+  secondDate: { label: string; value: string } | null;
+  billTo: string;
+  totalLabel: string;
+  cancelled: boolean;
+  paymentInstructions: string | null;
+}
+
+const RED = rgb(0.75, 0.12, 0.12);
+
+async function renderPdf(
+  input: QuotePdfInput,
+  opts: RenderOptions
+): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   const fonts: Fonts = {
     regular: await doc.embedFont(StandardFonts.Helvetica),
     bold: await doc.embedFont(StandardFonts.HelveticaBold),
   };
   const { business, quote } = input;
-  doc.setTitle(`Quote ${quote.number} - ${quote.title}`);
+  const isInvoice = opts.word === "Invoice";
+  doc.setTitle(`${opts.word} ${opts.number} - ${quote.title}`);
   doc.setAuthor(business.name || "GripBill");
   doc.setCreator("GripBill");
   doc.setProducer("GripBill");
@@ -628,17 +656,18 @@ export async function buildQuotePdf(input: QuotePdfInput): Promise<Uint8Array> {
       size: 9,
       color: MUTED,
     });
-    sheet.text(`Quote ${quote.number} (continued)`, PAGE_W - MARGIN, sheet.y - 9, {
-      size: 9,
-      color: MUTED,
-      align: "right",
-    });
+    sheet.text(
+      `${opts.word} ${opts.number} (continued)`,
+      PAGE_W - MARGIN,
+      sheet.y - 9,
+      { size: 9, color: MUTED, align: "right" }
+    );
     sheet.line(MARGIN, sheet.y - 16, PAGE_W - MARGIN, sheet.y - 16);
     sheet.y -= 30;
   });
   sheet.newPage(true);
 
-  // ----- header: business on the left, quote details on the right -----
+  // ----- header: business on the left, document details on the right -----
   const startY = sheet.y;
   const nameLines = wrapText(business.name || "Your business", fonts.bold, 18, 330);
   let leftY = startY - 14;
@@ -659,40 +688,49 @@ export async function buildQuotePdf(input: QuotePdfInput): Promise<Uint8Array> {
   }
 
   const rightX = PAGE_W - MARGIN;
-  sheet.text("QUOTE", rightX, startY - 20, {
+  sheet.text(opts.word.toUpperCase(), rightX, startY - 20, {
     font: fonts.bold,
     size: 26,
     color: ACCENT,
     align: "right",
   });
-  sheet.text(quote.number, rightX, startY - 38, {
+  sheet.text(opts.number, rightX, startY - 38, {
     font: fonts.bold,
     size: 11,
     align: "right",
   });
   let rightY = startY - 54;
-  sheet.text(`Date: ${formatPdfDate(quote.issuedOn, input.timeZone)}`, rightX, rightY, {
+  sheet.text(opts.dateText, rightX, rightY, {
     size: 9,
     color: MUTED,
     align: "right",
   });
   rightY -= 12;
-  if (quote.validUntil) {
-    sheet.text(`Valid until: ${formatPdfDate(quote.validUntil)}`, rightX, rightY, {
+  if (opts.secondDate) {
+    sheet.text(`${opts.secondDate.label}: ${opts.secondDate.value}`, rightX, rightY, {
       size: 9,
       color: MUTED,
       align: "right",
     });
     rightY -= 12;
   }
+  if (opts.cancelled) {
+    sheet.text("CANCELLED", rightX, rightY - 2, {
+      font: fonts.bold,
+      size: 11,
+      color: RED,
+      align: "right",
+    });
+    rightY -= 16;
+  }
 
   sheet.y = Math.min(leftY, rightY) - 6;
   sheet.rect(MARGIN, sheet.y, CONTENT_W, 2, ACCENT);
   sheet.y -= 16;
 
-  // ----- prepared for / job address -----
+  // ----- prepared for / bill to, and job address -----
   const blockTop = sheet.y;
-  label(sheet, "Prepared for", MARGIN, blockTop);
+  label(sheet, opts.billTo, MARGIN, blockTop);
   let clientY = blockTop - 15;
   for (const line of wrapText(quote.clientName, fonts.bold, 12, 240)) {
     sheet.text(line, MARGIN, clientY, { font: fonts.bold, size: 12 });
@@ -731,20 +769,24 @@ export async function buildQuotePdf(input: QuotePdfInput): Promise<Uint8Array> {
   } else {
     drawDetailedSections(sheet, input);
   }
-  drawTotals(sheet, input);
+  drawTotals(sheet, input, opts.totalLabel);
 
-  // ----- notes, terms, acceptance -----
-  // Bank details are not printed on a quote: they go on the invoice sent
-  // once the customer accepts.
+  // ----- notes, then terms and acceptance (quote) or how to pay (invoice) -----
   if (quote.notes?.trim()) textBlock(sheet, "Notes", quote.notes);
 
-  const terms = business.terms?.trim() ?? "";
-  const termLines = terms ? wrapText(terms, fonts.regular, 9, SIDE_COL_W) : [];
-  if (termLines.length > 0 && termLines.length <= 8) {
-    drawTermsBeside(sheet, termLines);
+  if (isInvoice) {
+    // Bank / payment details go on the invoice, not on the quote.
+    const how = opts.paymentInstructions?.trim();
+    if (how) textBlock(sheet, "How to pay", how);
   } else {
-    if (terms) textBlock(sheet, "Terms", terms);
-    drawAcceptance(sheet);
+    const terms = business.terms?.trim() ?? "";
+    const termLines = terms ? wrapText(terms, fonts.regular, 9, SIDE_COL_W) : [];
+    if (termLines.length > 0 && termLines.length <= 8) {
+      drawTermsBeside(sheet, termLines);
+    } else {
+      if (terms) textBlock(sheet, "Terms", terms);
+      drawAcceptance(sheet);
+    }
   }
 
   // ----- footer on every page -----
@@ -753,7 +795,7 @@ export async function buildQuotePdf(input: QuotePdfInput): Promise<Uint8Array> {
     sheet.page = page;
     sheet.line(MARGIN, MARGIN + 14, PAGE_W - MARGIN, MARGIN + 14);
     sheet.text(
-      `${business.name || "Quote"}  |  ${quote.number}`,
+      `${business.name || opts.word}  |  ${opts.number}`,
       MARGIN,
       MARGIN,
       { size: 8, color: MUTED }
@@ -766,4 +808,50 @@ export async function buildQuotePdf(input: QuotePdfInput): Promise<Uint8Array> {
   });
 
   return doc.save();
+}
+
+/** Builds the quote as an A4 PDF and returns its bytes. */
+export async function buildQuotePdf(input: QuotePdfInput): Promise<Uint8Array> {
+  const { quote } = input;
+  return renderPdf(input, {
+    word: "Quote",
+    number: quote.number,
+    dateText: `Date: ${formatPdfDate(quote.issuedOn, input.timeZone)}`,
+    secondDate: quote.validUntil
+      ? { label: "Valid until", value: formatPdfDate(quote.validUntil) }
+      : null,
+    billTo: "Prepared for",
+    totalLabel: "TOTAL",
+    cancelled: false,
+    paymentInstructions: null,
+  });
+}
+
+/** Builds the invoice as an A4 PDF and returns its bytes. It shows the
+ * invoice number, the issue and due dates and the contractor's payment
+ * details. */
+export async function buildInvoicePdf(
+  input: InvoicePdfInput
+): Promise<Uint8Array> {
+  const { invoice, business } = input;
+  const { dueOn, status, ...rest } = invoice;
+  return renderPdf(
+    {
+      business,
+      quote: { ...rest, validUntil: null },
+      timeZone: input.timeZone,
+    },
+    {
+      word: "Invoice",
+      number: invoice.number,
+      dateText: `Date: ${formatPdfDate(invoice.issuedOn, input.timeZone)}`,
+      secondDate: dueOn ? { label: "Due", value: formatPdfDate(dueOn) } : null,
+      billTo: "Bill to",
+      totalLabel: status === "void" ? "TOTAL" : "TOTAL DUE",
+      cancelled: status === "void",
+      // A cancelled invoice is not to be paid, so it has no bank details.
+      paymentInstructions:
+        status === "void" ? null : business.paymentInstructions,
+    }
+  );
 }
