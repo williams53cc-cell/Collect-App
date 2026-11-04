@@ -1,6 +1,7 @@
 import { PDFDocument, StandardFonts } from "pdf-lib";
 import { describe, expect, it } from "vitest";
 import {
+  buildInvoicePdf,
   buildQuotePdf,
   formatMoney,
   formatPdfDate,
@@ -8,6 +9,7 @@ import {
   pdfSafe,
   quotePdfFileName,
   wrapText,
+  type InvoicePdfInput,
   type QuotePdfInput,
   type QuotePdfItem,
 } from "./quote-pdf";
@@ -150,6 +152,86 @@ describe("buildQuotePdf", () => {
       input([item()], { notes: "A long note. ".repeat(500) })
     );
     expect(await pageCount(bytes)).toBeGreaterThan(1);
+  });
+});
+
+function invoiceInput(
+  items: QuotePdfItem[],
+  over: Partial<InvoicePdfInput["invoice"]> = {},
+  paymentInstructions: string | null = "Sample Bank, Kingston\nAccount name: Brown Construction\nAccount number: 000000000"
+): InvoicePdfInput {
+  const base = input(items);
+  const { validUntil, ...quote } = base.quote;
+  void validUntil;
+  return {
+    business: { ...base.business, paymentInstructions },
+    invoice: {
+      ...quote,
+      number: "INV-0007",
+      issuedOn: "2026-11-04",
+      dueOn: "2026-11-18",
+      status: "issued",
+      ...over,
+    },
+    timeZone: "America/Jamaica",
+  };
+}
+
+describe("buildInvoicePdf", () => {
+  it("makes a real one-page A4 invoice", async () => {
+    const bytes = await buildInvoicePdf(invoiceInput([item()]));
+    expect(new TextDecoder().decode(bytes.slice(0, 5))).toBe("%PDF-");
+    const doc = await PDFDocument.load(bytes);
+    expect(doc.getPageCount()).toBe(1);
+    expect(doc.getTitle()).toBe("Invoice INV-0007 - Two-bedroom house");
+    const { width, height } = doc.getPage(0).getSize();
+    expect(Math.round(width)).toBe(595);
+    expect(Math.round(height)).toBe(842);
+  });
+
+  it("prints the payment details only when there are some", async () => {
+    const withBank = await buildInvoicePdf(invoiceInput([item()]));
+    const without = await buildInvoicePdf(invoiceInput([item()], {}, null));
+    expect(withBank.length).toBeGreaterThan(without.length);
+  });
+
+  it("works with a cancelled invoice, the summary view and no due date", async () => {
+    const cancelled = await buildInvoicePdf(
+      invoiceInput([item()], { status: "void", dueOn: null })
+    );
+    expect(await pageCount(cancelled)).toBe(1);
+    const summary = await buildInvoicePdf(
+      invoiceInput([item()], { customerView: "section_totals" })
+    );
+    expect(await pageCount(summary)).toBe(1);
+  });
+
+  it("fits a typical labour invoice with notes and bank details on one page", async () => {
+    const labour = Array.from({ length: 13 }, (_, i) =>
+      item({
+        section: "labour",
+        stage: ["Foundation", "Walls", "Lintel and belt beam", "Decking"][
+          Math.min(3, Math.floor(i / 4))
+        ],
+        description: `Labour line ${i + 1}`,
+        unit: "RN/FT",
+        quantity: 100 + i,
+        unitPrice: 1400,
+        amount: (100 + i) * 1400,
+      })
+    );
+    const data = invoiceInput(labour, { notes: "Thank you for your business." });
+    expect(await pageCount(await buildInvoicePdf(data))).toBe(1);
+  });
+
+  it("runs onto more pages for a long invoice and a long payment note", async () => {
+    const many = Array.from({ length: 150 }, (_, i) =>
+      item({ description: `Item ${i + 1}` })
+    );
+    const long = await buildInvoicePdf(
+      invoiceInput(many, {}, "Pay here. ".repeat(400))
+    );
+    expect(await pageCount(long)).toBeGreaterThan(3);
   });
 });
 
