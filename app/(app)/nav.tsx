@@ -8,6 +8,7 @@ const LINKS = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/customers", label: "Customers" },
   { href: "/quotes", label: "Quotes" },
+  { href: "/invoices", label: "Invoices" },
   { href: "/follow-ups", label: "Follow-ups" },
   { href: "/settings", label: "Settings" },
 ];
@@ -43,10 +44,10 @@ export function Nav() {
         </div>
       </nav>
 
-      {/* Bottom tab bar: mobile only. Thumb-reachable, always visible — no
+      {/* Bottom tab bar: mobile only. Thumb-reachable, always visible, no
           hidden or scrolled-off destinations on a phone-sized screen. */}
       <nav className="fixed inset-x-0 bottom-0 z-10 border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)] sm:hidden">
-        <div className="grid grid-cols-5">
+        <div className="grid grid-cols-6">
           {LINKS.map((link) => (
             <BottomLink key={link.href} href={link.href} label={link.label} />
           ))}
