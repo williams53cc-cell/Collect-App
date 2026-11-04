@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { QuoteDetail } from "@/lib/data/quotes";
 import type { Database } from "@/types/database";
-import { toQuotePdfInput } from "./quote-pdf-input";
+import { addressWithTaxNumbers, toQuotePdfInput } from "./quote-pdf-input";
 
 type Profile = Database["public"]["Tables"]["business_profiles"]["Row"];
 
@@ -66,6 +66,8 @@ const profile: Profile = {
   business_phone: "(876) 555-0123",
   business_email: null,
   business_address: "12 Main Street",
+  trn: null,
+  gct_number: null,
   quote_terms: "50% deposit.",
   include_payment_link_default: true,
   onboarding_completed: true,
@@ -119,5 +121,36 @@ describe("toQuotePdfInput", () => {
     const result = toQuotePdfInput(quote, profile);
     expect(JSON.stringify(result)).not.toContain("Use the quote number.");
     expect(Object.keys(result.business)).not.toContain("paymentInstructions");
+  });
+});
+
+describe("addressWithTaxNumbers", () => {
+  const base = { business_address: "12 Main Street", trn: null, gct_number: null };
+
+  it("is just the address when there are no tax numbers", () => {
+    expect(addressWithTaxNumbers(base)).toBe("12 Main Street");
+  });
+
+  it("adds the TRN and the GCT number on their own lines", () => {
+    expect(
+      addressWithTaxNumbers({
+        business_address: " 12 Main Street ",
+        trn: " 123-456-789 ",
+        gct_number: "GCT 0001",
+      })
+    ).toBe("12 Main Street\nTRN: 123-456-789\nGCT No: GCT 0001");
+  });
+
+  it("still prints a tax number when there is no address", () => {
+    expect(
+      addressWithTaxNumbers({ business_address: "", trn: "123", gct_number: null })
+    ).toBe("TRN: 123");
+  });
+
+  it("is null when there is nothing to print", () => {
+    expect(addressWithTaxNumbers(null)).toBeNull();
+    expect(
+      addressWithTaxNumbers({ business_address: " ", trn: "", gct_number: " " })
+    ).toBeNull();
   });
 });
