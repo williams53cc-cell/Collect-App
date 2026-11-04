@@ -114,6 +114,26 @@ describe("buildQuotePdf", () => {
     expect(await pageCount(bytes)).toBeGreaterThan(3);
   });
 
+  it("fits a typical labour quote with terms and notes on one page", async () => {
+    const labour = Array.from({ length: 13 }, (_, i) =>
+      item({
+        section: "labour",
+        stage: ["Foundation", "Walls", "Lintel and belt beam", "Decking"][
+          Math.min(3, Math.floor(i / 4))
+        ],
+        description: `Labour line ${i + 1}`,
+        unit: "RN/FT",
+        quantity: 100 + i,
+        unitPrice: 1400,
+        amount: (100 + i) * 1400,
+      })
+    );
+    const data = input(labour, { notes: "Price does not include fixtures." });
+    data.business.terms =
+      "50% deposit before work starts.\nBalance due on completion.\nPrices valid for 30 days.";
+    expect(await pageCount(await buildQuotePdf(data))).toBe(1);
+  });
+
   it("copes with odd characters, emoji and very long words", async () => {
     const bytes = await buildQuotePdf(
       input([
