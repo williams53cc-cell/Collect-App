@@ -31,7 +31,8 @@ export default async function NewQuotePage({
           description: line.description,
           unit: line.unit,
           quantity: "",
-          unit_price: "",
+          unit_price: line.unitPrice ?? "",
+          preset_price: line.unitPrice ?? "",
         })),
       }
     : undefined;
@@ -46,7 +47,7 @@ export default async function NewQuotePage({
   return (
     <div className="space-y-6">
       <Link href="/quotes" className="text-sm text-gray-500 hover:underline">
-        ← Back to quotes
+        {"\u2190"} Back to quotes
       </Link>
       <div>
         <h1 className="text-xl font-semibold">New quote</h1>
@@ -73,8 +74,8 @@ export default async function NewQuotePage({
         </div>
         <p className="text-xs text-gray-400">
           {template
-            ? `${template.description} Fill in the quantity and price on the lines you need. Lines you leave empty are left out when you save.`
-            : "A template adds the usual lines and units. You enter the quantities and prices."}
+            ? `${template.description} Labour prices are filled in for you. Change any price you like and enter the quantity on the lines you need. Lines with no quantity are left out when you save.`
+            : "A template adds the usual lines and units, with labour prices you can change."}
         </p>
       </div>
 
