@@ -2,9 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getBusinessProfile } from "@/lib/data/business-profile";
 import { getCustomers } from "@/lib/data/customers";
+import { getInvoicesForQuote } from "@/lib/data/invoices";
 import { getQuote } from "@/lib/data/quotes";
 import { todayISODate } from "@/lib/format";
 import { formatQuoteNumber, isQuoteExpired } from "@/lib/quotes";
+import { CreateInvoice } from "../create-invoice";
 import { QuoteActions } from "../quote-actions";
 import { QuoteForm, type QuoteFormInitial } from "../quote-form";
 import { QuoteShare } from "../quote-share";
@@ -30,6 +32,7 @@ export default async function QuoteDetailPage({
 
   const customers = await getCustomers();
   const profile = await getBusinessProfile();
+  const invoices = await getInvoicesForQuote(quote.id);
   const label = formatQuoteNumber(quote.quote_number);
 
   const initial: QuoteFormInitial = {
@@ -57,7 +60,7 @@ export default async function QuoteDetailPage({
   return (
     <div className="space-y-6">
       <Link href="/quotes" className="text-sm text-gray-500 hover:underline">
-        ← Back to quotes
+        {"\u2190"} Back to quotes
       </Link>
 
       <div className="rounded-lg border border-gray-200 bg-white p-4 sm:p-6">
@@ -96,6 +99,13 @@ export default async function QuoteDetailPage({
             currency={quote.currency}
             businessName={profile?.business_name ?? null}
             status={quote.status}
+          />
+        </div>
+        <div className="mt-4 border-t border-gray-100 pt-4">
+          <CreateInvoice
+            quoteId={quote.id}
+            status={quote.status}
+            invoices={invoices}
           />
         </div>
       </div>
