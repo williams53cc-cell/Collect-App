@@ -16,6 +16,7 @@ import {
   calculateQuoteTotals,
   lineAmount,
 } from "@/lib/quotes";
+import { submittedPrice } from "@/lib/quote-templates";
 import { parseDecimal } from "@/lib/validation/quote";
 import type { QuoteCustomerView, QuoteSection } from "@/types/database";
 import { createQuote, updateQuote } from "./actions";
@@ -46,6 +47,8 @@ export interface QuoteFormInitial {
     unit: string;
     quantity: string;
     unit_price: string;
+    /** Suggested price from a template, so untouched lines can be skipped. */
+    preset_price?: string;
   }[];
 }
 
@@ -57,6 +60,7 @@ interface Row {
   unit: string;
   quantity: string;
   unit_price: string;
+  presetPrice: string;
 }
 
 const EMPTY_INITIAL: QuoteFormInitial = {
@@ -110,7 +114,7 @@ export function QuoteForm({
   const nextKey = useRef(0);
   const makeRow = (
     section: QuoteSection,
-    values: Partial<Omit<Row, "key" | "section">> = {}
+    values: Partial<Omit<Row, "key" | "section">> = {},
   ): Row => ({
     key: nextKey.current++,
     section,
@@ -119,13 +123,16 @@ export function QuoteForm({
     unit: "",
     quantity: "1",
     unit_price: "",
+    presetPrice: "",
     ...values,
   });
 
   const [rows, setRows] = useState<Row[]>(() =>
     initial.items.length > 0
-      ? initial.items.map((item) => makeRow(item.section, item))
-      : QUOTE_SECTIONS.map((section) => makeRow(section))
+      ? initial.items.map(({ preset_price, ...item }) =>
+          makeRow(item.section, { ...item, presetPrice: preset_price ?? "" }),
+        )
+      : QUOTE_SECTIONS.map((section) => makeRow(section)),
   );
 
   const [title, setTitle] = useState(initial.title);
@@ -149,22 +156,20 @@ export function QuoteForm({
           unitPrice: toNumber(row.unit_price),
         })),
         toNumber(discount),
-        toNumber(taxRate)
+        toNumber(taxRate),
       ),
-    [rows, discount, taxRate]
+    [rows, discount, taxRate],
   );
 
   const stages = useMemo(
     () =>
-      Array.from(
-        new Set(rows.map((row) => row.stage.trim()).filter(Boolean))
-      ),
-    [rows]
+      Array.from(new Set(rows.map((row) => row.stage.trim()).filter(Boolean))),
+    [rows],
   );
 
   function updateRow(key: number, values: Partial<Row>) {
     setRows((current) =>
-      current.map((row) => (row.key === key ? { ...row, ...values } : row))
+      current.map((row) => (row.key === key ? { ...row, ...values } : row)),
     );
   }
 
@@ -185,15 +190,25 @@ export function QuoteForm({
     QUOTE_SECTIONS.flatMap((section) =>
       rows
         .filter((row) => row.section === section)
-        .map(({ section: s, stage, description, unit, quantity, unit_price }) => ({
-          section: s,
-          stage,
-          description,
-          unit,
-          quantity,
-          unit_price,
-        }))
-    )
+        .map(
+          ({
+            section: s,
+            stage,
+            description,
+            unit,
+            quantity,
+            unit_price,
+            presetPrice,
+          }) => ({
+            section: s,
+            stage,
+            description,
+            unit,
+            quantity,
+            unit_price: submittedPrice(quantity, unit_price, presetPrice),
+          }),
+        ),
+    ),
   );
 
   const sectionTotal: Record<QuoteSection, number> = {
@@ -359,7 +374,9 @@ export function QuoteForm({
                 <h2 className="text-base font-semibold">
                   {QUOTE_SECTION_LABELS[section]}
                 </h2>
-                <p className="text-xs text-gray-400">{SECTION_HINTS[section]}</p>
+                <p className="text-xs text-gray-400">
+                  {SECTION_HINTS[section]}
+                </p>
               </div>
               <p className="text-sm font-semibold tabular-nums">
                 {formatCurrency(sectionTotal[section])}
@@ -455,8 +472,8 @@ export function QuoteForm({
                       {formatCurrency(
                         lineAmount(
                           toNumber(row.quantity),
-                          toNumber(row.unit_price)
-                        )
+                          toNumber(row.unit_price),
+                        ),
                       )}
                     </p>
                   </div>
@@ -469,7 +486,9 @@ export function QuoteForm({
               variant="secondary"
               size="sm"
               className="mt-4"
-              onClick={() => setRows((current) => [...current, makeRow(section)])}
+              onClick={() =>
+                setRows((current) => [...current, makeRow(section)])
+              }
             >
               Add {QUOTE_SECTION_LABELS[section].toLowerCase()} line
             </Button>
@@ -536,7 +555,9 @@ export function QuoteForm({
           {totals.discount > 0 && (
             <div className="flex justify-between">
               <dt className="text-gray-500">Discount</dt>
-              <dd className="tabular-nums">-{formatCurrency(totals.discount)}</dd>
+              <dd className="tabular-nums">
+                -{formatCurrency(totals.discount)}
+              </dd>
             </div>
           )}
           {totals.tax > 0 && (
@@ -610,7 +631,7 @@ export function QuoteForm({
             {formatCurrency(totals.total)}
           </span>
         </p>
-        <SubmitButton pendingText="Saving…">
+        <SubmitButton pendingText={"Saving\u2026"}>
           {mode === "edit" ? "Save changes" : "Create quote"}
         </SubmitButton>
       </div>
