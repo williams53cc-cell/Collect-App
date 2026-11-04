@@ -14,11 +14,15 @@ export function BusinessContactForm({
   email,
   address,
   terms,
+  trn,
+  gctNumber,
 }: {
   phone: string | null;
   email: string | null;
   address: string | null;
   terms: string | null;
+  trn: string | null;
+  gctNumber: string | null;
 }) {
   const [state, formAction] = useActionState(
     updateBusinessContact,
@@ -75,6 +79,52 @@ export function BusinessContactForm({
           placeholder="12 Main Street, Spanish Town, St. Catherine"
         />
       </Field>
+
+      <details
+        className="rounded-md border border-gray-200 px-3 py-2"
+        open={!!(trn || gctNumber || errors.trn || errors.gct_number)}
+      >
+        <summary className="cursor-pointer text-sm font-medium text-gray-700">
+          Tax numbers (optional)
+        </summary>
+        <div className="mt-3 space-y-4">
+          <p className="text-sm text-gray-500">
+            Most small contractors leave these empty. Nothing is printed unless
+            you fill it in. Only add them if a customer or your accountant asks
+            you to show them.
+          </p>
+
+          <Field
+            label="TRN (Taxpayer Registration Number)"
+            htmlFor="trn"
+            error={errors.trn?.[0]}
+          >
+            <Input
+              id="trn"
+              name="trn"
+              inputMode="numeric"
+              defaultValue={trn ?? ""}
+              invalid={!!errors.trn}
+              placeholder="000-000-000"
+            />
+          </Field>
+
+          <Field
+            label="GCT registration number"
+            htmlFor="gct_number"
+            error={errors.gct_number?.[0]}
+            hint="Only if you are registered for GCT."
+          >
+            <Input
+              id="gct_number"
+              name="gct_number"
+              defaultValue={gctNumber ?? ""}
+              invalid={!!errors.gct_number}
+              placeholder="Your GCT number"
+            />
+          </Field>
+        </div>
+      </details>
 
       <Field
         label="Terms on your quotes"
