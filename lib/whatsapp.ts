@@ -1,4 +1,4 @@
-/** Helpers for sharing a quote on WhatsApp. */
+/** Helpers for sharing a quote or an invoice on WhatsApp. */
 
 /** Turns a phone number as typed into the digits WhatsApp wants (country
  * code first, no plus or spaces). A 10-digit number is treated as a
@@ -35,6 +35,28 @@ export function quoteShareMessage(details: {
     `${details.title}${from}. Total: ${details.currency} ` +
     `${moneyFormat.format(details.total)}. ` +
     `Please let me know if you have any questions.`
+  );
+}
+
+/** The short message that goes with the invoice PDF. */
+export function invoiceShareMessage(details: {
+  clientName: string;
+  invoiceLabel: string;
+  title: string;
+  total: number;
+  currency: string;
+  dueOn?: string | null;
+  businessName?: string | null;
+}): string {
+  const from = details.businessName?.trim()
+    ? ` from ${details.businessName.trim()}`
+    : "";
+  const due = details.dueOn ? ` Payment is due by ${details.dueOn}.` : "";
+  return (
+    `Hi ${details.clientName}, here is invoice ${details.invoiceLabel} for ` +
+    `${details.title}${from}. Total: ${details.currency} ` +
+    `${moneyFormat.format(details.total)}.${due} ` +
+    `Payment details are on the invoice. Thank you.`
   );
 }
 
