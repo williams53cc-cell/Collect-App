@@ -194,7 +194,7 @@ const PAGE_W = 595.28;
 const PAGE_H = 841.89;
 const MARGIN = 48;
 const CONTENT_W = PAGE_W - MARGIN * 2;
-const FOOTER_H = 34;
+const FOOTER_H = 28;
 
 const INK = rgb(0.11, 0.13, 0.17);
 const MUTED = rgb(0.42, 0.45, 0.5);
@@ -292,16 +292,16 @@ function label(sheet: Sheet, value: string, x: number, y: number) {
 
 /** A heading with a block of text under it. Long text flows onto the next
  * page one line at a time. */
-function textBlock(sheet: Sheet, heading: string, body: string, gap = 16) {
-  const lines = wrapText(body, sheet.fonts.regular, 9.5, CONTENT_W);
-  sheet.ensure(gap + 12 + 13 * Math.min(lines.length, 2));
+function textBlock(sheet: Sheet, heading: string, body: string, gap = 12) {
+  const lines = wrapText(body, sheet.fonts.regular, 9, CONTENT_W);
+  sheet.ensure(gap + 11 + 12 * Math.min(lines.length, 2));
   sheet.y -= gap;
   label(sheet, heading, MARGIN, sheet.y);
-  sheet.y -= 13;
+  sheet.y -= 12;
   for (const line of lines) {
-    sheet.ensure(13);
-    sheet.text(line, MARGIN, sheet.y, { size: 9.5 });
-    sheet.y -= 13;
+    sheet.ensure(12);
+    sheet.text(line, MARGIN, sheet.y, { size: 9 });
+    sheet.y -= 12;
   }
 }
 
@@ -312,24 +312,25 @@ interface Column {
   align: "left" | "right";
 }
 
-const LINE_H = 12.5;
-const PAD = 5;
+const LINE_H = 11.5;
+const PAD = 3;
+const ROW_FONT = 9;
 
 function drawTableHeader(sheet: Sheet, columns: Column[]) {
-  const height = 18;
+  const height = 16;
   sheet.rect(MARGIN, sheet.y - height, CONTENT_W, height, BAND);
   let x = MARGIN;
   for (const col of columns) {
     const pad = 6;
     if (col.align === "right") {
-      sheet.text(col.title, x + col.width - pad, sheet.y - 12, {
+      sheet.text(col.title, x + col.width - pad, sheet.y - 11, {
         font: sheet.fonts.bold,
         size: 8,
         color: MUTED,
         align: "right",
       });
     } else {
-      sheet.text(col.title, x + pad, sheet.y - 12, {
+      sheet.text(col.title, x + pad, sheet.y - 11, {
         font: sheet.fonts.bold,
         size: 8,
         color: MUTED,
@@ -350,7 +351,7 @@ function rowLines(
   const lines: Record<string, string[]> = {};
   let most = 1;
   for (const col of columns) {
-    const wrapped = wrapText(cells[col.key] ?? "", font, 9.5, col.width - 12);
+    const wrapped = wrapText(cells[col.key] ?? "", font, ROW_FONT, col.width - 12);
     lines[col.key] = wrapped;
     most = Math.max(most, wrapped.length);
   }
@@ -369,16 +370,16 @@ function drawRow(
   const font = opts.bold ? sheet.fonts.bold : sheet.fonts.regular;
   let x = MARGIN;
   for (const col of columns) {
-    let baseline = sheet.y - PAD - 8.5;
+    let baseline = sheet.y - PAD - 7.5;
     for (const line of lines[col.key]) {
       if (col.align === "right") {
         sheet.text(line, x + col.width - 6, baseline, {
           font,
-          size: 9.5,
+          size: ROW_FONT,
           align: "right",
         });
       } else {
-        sheet.text(line, x + 6, baseline, { font, size: 9.5 });
+        sheet.text(line, x + 6, baseline, { font, size: ROW_FONT });
       }
       baseline -= LINE_H;
     }
@@ -389,9 +390,9 @@ function drawRow(
 }
 
 function drawSectionBand(sheet: Sheet, title: string) {
-  const height = 20;
+  const height = 18;
   sheet.rect(MARGIN, sheet.y - height, CONTENT_W, height, HEAD_FILL);
-  sheet.text(title.toUpperCase(), MARGIN + 8, sheet.y - 13.5, {
+  sheet.text(title.toUpperCase(), MARGIN + 8, sheet.y - 12.5, {
     font: sheet.fonts.bold,
     size: 9,
     color: WHITE,
@@ -430,8 +431,8 @@ function drawDetailedSections(sheet: Sheet, input: QuotePdfInput) {
       DETAIL_COLUMNS,
       { description: rows[0].description }
     ).height;
-    sheet.ensure(24 + 20 + 18 + first, undefined);
-    sheet.y -= 14;
+    sheet.ensure(10 + 18 + 16 + first, undefined);
+    sheet.y -= 10;
     drawSectionBand(sheet, QUOTE_SECTION_LABELS[section]);
     header();
 
@@ -486,8 +487,8 @@ function drawSectionTotalsTable(sheet: Sheet, input: QuotePdfInput) {
     extras: totals.extras,
   };
   const header = () => drawTableHeader(sheet, SUMMARY_COLUMNS);
-  sheet.ensure(14 + 20 + 18 + 30);
-  sheet.y -= 14;
+  sheet.ensure(10 + 18 + 16 + 30);
+  sheet.y -= 10;
   drawSectionBand(sheet, "Summary of work");
   header();
   for (const section of QUOTE_SECTIONS) {
@@ -509,9 +510,11 @@ function drawTotals(sheet: Sheet, input: QuotePdfInput) {
   const { totals, taxRate, currency } = input.quote;
   const boxW = 250;
   const x = PAGE_W - MARGIN - boxW;
-  const rows: [string, string][] = [
-    ["Subtotal", formatMoney(totals.subtotal)],
-  ];
+  // With no discount and no tax the subtotal is the total, so say it once.
+  const rows: [string, string][] =
+    totals.discount > 0 || totals.tax > 0
+      ? [["Subtotal", formatMoney(totals.subtotal)]]
+      : [];
   if (totals.discount > 0) {
     rows.push(["Discount", `-${formatMoney(totals.discount)}`]);
   }
@@ -521,42 +524,42 @@ function drawTotals(sheet: Sheet, input: QuotePdfInput) {
       formatMoney(totals.tax),
     ]);
   }
-  const height = rows.length * 18 + 8 + 28;
-  sheet.ensure(height + 16);
-  sheet.y -= 16;
+  const height = rows.length * 16 + (rows.length > 0 ? 6 : 0) + 26;
+  sheet.ensure(height + 12);
+  sheet.y -= 12;
   for (const [name, value] of rows) {
-    sheet.text(name, x + 8, sheet.y - 12, { color: MUTED });
-    sheet.text(value, x + boxW - 8, sheet.y - 12, { align: "right" });
-    sheet.y -= 18;
+    sheet.text(name, x + 8, sheet.y - 11, { color: MUTED, size: 9 });
+    sheet.text(value, x + boxW - 8, sheet.y - 11, { align: "right", size: 9 });
+    sheet.y -= 16;
   }
-  sheet.y -= 8;
-  sheet.rect(x, sheet.y - 28, boxW, 28, ACCENT);
-  sheet.text(`TOTAL (${currency})`, x + 10, sheet.y - 18, {
+  if (rows.length > 0) sheet.y -= 6;
+  sheet.rect(x, sheet.y - 26, boxW, 26, ACCENT);
+  sheet.text(`TOTAL (${currency})`, x + 10, sheet.y - 17, {
     font: sheet.fonts.bold,
     size: 10,
     color: WHITE,
   });
-  sheet.text(formatMoney(totals.total), x + boxW - 10, sheet.y - 18.5, {
+  sheet.text(formatMoney(totals.total), x + boxW - 10, sheet.y - 17.5, {
     font: sheet.fonts.bold,
     size: 12.5,
     color: WHITE,
     align: "right",
   });
-  sheet.y -= 28;
+  sheet.y -= 26;
 }
 
 function drawAcceptance(sheet: Sheet) {
-  sheet.ensure(100);
-  sheet.y -= 26;
+  sheet.ensure(58);
+  sheet.y -= 14;
   label(sheet, "Acceptance", MARGIN, sheet.y);
-  sheet.y -= 13;
+  sheet.y -= 11;
   sheet.text(
     "To accept this quote, please sign below and return a copy.",
     MARGIN,
     sheet.y,
-    { size: 9.5 }
+    { size: 9 }
   );
-  sheet.y -= 40;
+  sheet.y -= 24;
   const parts: [string, number, number][] = [
     ["Name", MARGIN, 170],
     ["Signature", MARGIN + 190, 190],
@@ -566,7 +569,43 @@ function drawAcceptance(sheet: Sheet) {
     sheet.line(x, sheet.y, x + width, sheet.y, 0.8);
     sheet.text(name, x, sheet.y - 11, { size: 8, color: MUTED });
   }
-  sheet.y -= 16;
+  sheet.y -= 12;
+}
+
+const SIDE_COL_W = 290;
+
+/** Terms on the left, the signature lines on the right, so a short quote
+ * still fits on one page. */
+function drawTermsBeside(sheet: Sheet, termLines: string[]) {
+  const height = Math.max(12 + termLines.length * 12, 70);
+  sheet.ensure(height + 8);
+  sheet.y -= 8;
+  const top = sheet.y;
+
+  label(sheet, "Terms", MARGIN, top);
+  let y = top - 12;
+  for (const line of termLines) {
+    sheet.text(line, MARGIN, y, { size: 9 });
+    y -= 12;
+  }
+
+  const x = MARGIN + SIDE_COL_W + 24;
+  const width = CONTENT_W - SIDE_COL_W - 24;
+  label(sheet, "Acceptance", x, top);
+  sheet.text("Sign to accept this quote.", x, top - 12, { size: 9 });
+  let lineY = top - 34;
+  sheet.line(x, lineY, x + width, lineY, 0.8);
+  sheet.text("Name", x, lineY - 10, { size: 8, color: MUTED });
+  lineY -= 22;
+  const signatureW = width - 62;
+  sheet.line(x, lineY, x + signatureW, lineY, 0.8);
+  sheet.text("Signature", x, lineY - 10, { size: 8, color: MUTED });
+  sheet.line(x + signatureW + 12, lineY, x + width, lineY, 0.8);
+  sheet.text("Date", x + signatureW + 12, lineY - 10, {
+    size: 8,
+    color: MUTED,
+  });
+  sheet.y = top - height;
 }
 
 /** Builds the quote as an A4 PDF and returns its bytes. */
@@ -601,16 +640,16 @@ export async function buildQuotePdf(input: QuotePdfInput): Promise<Uint8Array> {
 
   // ----- header: business on the left, quote details on the right -----
   const startY = sheet.y;
-  const nameLines = wrapText(business.name || "Your business", fonts.bold, 20, 300);
-  let leftY = startY - 16;
+  const nameLines = wrapText(business.name || "Your business", fonts.bold, 18, 330);
+  let leftY = startY - 14;
   for (const line of nameLines) {
-    sheet.text(line, MARGIN, leftY, { font: fonts.bold, size: 20 });
-    leftY -= 23;
+    sheet.text(line, MARGIN, leftY, { font: fonts.bold, size: 18 });
+    leftY -= 21;
   }
-  leftY += 23 - 14;
+  leftY += 21 - 13;
   const contact: string[] = [];
   if (business.address) {
-    contact.push(...wrapText(business.address, fonts.regular, 9, 300));
+    contact.push(...wrapText(business.address, fonts.regular, 9, 330));
   }
   if (business.phone) contact.push(business.phone);
   if (business.email) contact.push(business.email);
@@ -647,9 +686,9 @@ export async function buildQuotePdf(input: QuotePdfInput): Promise<Uint8Array> {
     rightY -= 12;
   }
 
-  sheet.y = Math.min(leftY, rightY) - 8;
+  sheet.y = Math.min(leftY, rightY) - 6;
   sheet.rect(MARGIN, sheet.y, CONTENT_W, 2, ACCENT);
-  sheet.y -= 20;
+  sheet.y -= 16;
 
   // ----- prepared for / job address -----
   const blockTop = sheet.y;
@@ -674,16 +713,16 @@ export async function buildQuotePdf(input: QuotePdfInput): Promise<Uint8Array> {
       jobY -= 12.5;
     }
   }
-  sheet.y = Math.min(clientY, jobY) - 6;
+  sheet.y = Math.min(clientY, jobY) - 2;
 
   // ----- project title -----
-  sheet.y -= 8;
+  sheet.y -= 4;
   label(sheet, "Project", MARGIN, sheet.y);
-  sheet.y -= 16;
+  sheet.y -= 14;
   for (const line of wrapText(quote.title, fonts.bold, 13, CONTENT_W)) {
     sheet.ensure(18);
-    sheet.text(line, MARGIN, sheet.y, { font: fonts.bold, size: 13 });
-    sheet.y -= 17;
+    sheet.text(line, MARGIN, sheet.y, { font: fonts.bold, size: 12.5 });
+    sheet.y -= 16;
   }
 
   // ----- lines -----
@@ -699,8 +738,14 @@ export async function buildQuotePdf(input: QuotePdfInput): Promise<Uint8Array> {
   // once the customer accepts.
   if (quote.notes?.trim()) textBlock(sheet, "Notes", quote.notes);
 
-  if (business.terms?.trim()) textBlock(sheet, "Terms", business.terms);
-  drawAcceptance(sheet);
+  const terms = business.terms?.trim() ?? "";
+  const termLines = terms ? wrapText(terms, fonts.regular, 9, SIDE_COL_W) : [];
+  if (termLines.length > 0 && termLines.length <= 8) {
+    drawTermsBeside(sheet, termLines);
+  } else {
+    if (terms) textBlock(sheet, "Terms", terms);
+    drawAcceptance(sheet);
+  }
 
   // ----- footer on every page -----
   const pages = doc.getPages();
