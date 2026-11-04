@@ -57,6 +57,8 @@ const profile = {
   business_phone: "876-555-0100",
   business_email: null,
   business_address: "",
+  trn: "123-456-789",
+  gct_number: null,
   payment_instructions: "Sample Bank\nAccount 000000",
   timezone: "America/Jamaica",
 } as never;
@@ -66,7 +68,7 @@ describe("toInvoicePdfInput", () => {
     const input = toInvoicePdfInput(invoice, profile);
     expect(input).not.toBeNull();
     expect(input!.business.name).toBe("Green Works");
-    expect(input!.business.address).toBeNull();
+    expect(input!.business.address).toBe("TRN: 123-456-789");
     expect(input!.business.paymentInstructions).toBe(
       "Sample Bank\nAccount 000000\n\n" +
         "Payment is due by 18 Nov 2026. Please use INV-0012 as your payment reference."
