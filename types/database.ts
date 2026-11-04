@@ -209,6 +209,8 @@ export interface Database {
           business_phone: string | null;
           business_email: string | null;
           business_address: string | null;
+          trn: string | null;
+          gct_number: string | null;
           quote_terms: string | null;
           include_payment_link_default: boolean;
           onboarding_completed: boolean;
@@ -229,6 +231,8 @@ export interface Database {
           business_phone?: string | null;
           business_email?: string | null;
           business_address?: string | null;
+          trn?: string | null;
+          gct_number?: string | null;
           quote_terms?: string | null;
           include_payment_link_default?: boolean;
           onboarding_completed?: boolean;
@@ -249,6 +253,8 @@ export interface Database {
           business_phone?: string | null;
           business_email?: string | null;
           business_address?: string | null;
+          trn?: string | null;
+          gct_number?: string | null;
           quote_terms?: string | null;
           include_payment_link_default?: boolean;
           onboarding_completed?: boolean;
