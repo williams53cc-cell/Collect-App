@@ -1,6 +1,7 @@
 import type { InvoiceDetail } from "@/lib/data/invoices";
 import { formatInvoiceNumber } from "@/lib/invoices";
 import type { Database } from "@/types/database";
+import { addressWithTaxNumbers } from "./quote-pdf-input";
 import { formatPdfDate, type InvoicePdfInput } from "./quote-pdf";
 
 type BusinessProfile = Database["public"]["Tables"]["business_profiles"]["Row"];
@@ -39,7 +40,7 @@ export function toInvoicePdfInput(
       name: profile?.business_name?.trim() ?? "",
       phone: orNull(profile?.business_phone),
       email: orNull(profile?.business_email),
-      address: orNull(profile?.business_address),
+      address: addressWithTaxNumbers(profile),
       terms: null,
       paymentInstructions: howToPay(
         orNull(profile?.payment_instructions),
