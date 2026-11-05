@@ -98,8 +98,6 @@ export function QuoteShare({
       <div className="flex flex-wrap items-center gap-2">
         <a
           href={pdfUrl}
-          target="_blank"
-          rel="noreferrer"
           className={buttonClassName({ variant: "secondary", size: "sm" })}
         >
           View PDF
